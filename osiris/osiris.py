@@ -71,8 +71,8 @@ def extract_bin_str(s):
     contracts = [contract for contract in contracts if contract[1]]
     if not contracts:
         logging.critical("Solidity compilation failed")
-        print "======= error ======="
-        print "Solidity compilation failed"
+        print("======= error =======")
+        print("Solidity compilation failed")
         exit()
     return contracts
 

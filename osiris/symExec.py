@@ -665,7 +665,7 @@ def sym_exec_block(params):
 
         if global_params.DEBUG_MODE:
             if depth > global_params.DEPTH_LIMIT:
-                print "!!! DEPTH LIMIT EXCEEDED !!!"
+                print("!!! DEPTH LIMIT EXCEEDED !!!")
 
         total_no_of_paths += 1
 
@@ -684,9 +684,9 @@ def sym_exec_block(params):
                 pass
 
         if global_params.DEBUG_MODE:
-            print "Termintating path: "+str(total_no_of_paths)
-            print "Depth: "+str(depth)
-            print ""
+            print("Termintating path: "+str(total_no_of_paths))
+            print("Depth: "+str(depth))
+            print("")
 
         display_analysis(analysis)
         if global_params.UNIT_TEST == 1:
@@ -1588,7 +1588,7 @@ def sym_exec_ins(params):
             current_miu_i = global_state["miu_i"]
 
             if isAllReal(mem_location, current_miu_i, code_from, no_bytes):
-                temp = long(math.ceil((mem_location + no_bytes) / float(32)))
+                temp = int(math.ceil((mem_location + no_bytes) / float(32)))
                 if temp > current_miu_i:
                     current_miu_i = temp
 
@@ -1654,7 +1654,7 @@ def sym_exec_ins(params):
             current_miu_i = global_state["miu_i"]
 
             if isAllReal(address, mem_location, current_miu_i, code_from, no_bytes) and USE_GLOBAL_BLOCKCHAIN:
-                temp = long(math.ceil((mem_location + no_bytes) / float(32)))
+                temp = int(math.ceil((mem_location + no_bytes) / float(32)))
                 if temp > current_miu_i:
                     current_miu_i = temp
 
@@ -1743,7 +1743,7 @@ def sym_exec_ins(params):
             address = stack.pop(0)
             current_miu_i = global_state["miu_i"]
             if isAllReal(address, current_miu_i) and address in mem:
-                temp = long(math.ceil((address + 32) / float(32)))
+                temp = int(math.ceil((address + 32) / float(32)))
                 if temp > current_miu_i:
                     current_miu_i = temp
                 value = mem[address]
@@ -1793,7 +1793,7 @@ def sym_exec_ins(params):
                     memory[stored_address + i] = value % 256
                     value /= 256
             if isAllReal(stored_address, current_miu_i):
-                temp = long(math.ceil((stored_address + 32) / float(32)))
+                temp = int(math.ceil((stored_address + 32) / float(32)))
                 if temp > current_miu_i:
                     current_miu_i = temp
                 mem[stored_address] = stored_value  # note that the stored_value could be symbolic
@@ -1826,7 +1826,7 @@ def sym_exec_ins(params):
             stored_value = temp_value % 256  # get the least byte
             current_miu_i = global_state["miu_i"]
             if isAllReal(stored_address, current_miu_i):
-                temp = long(math.ceil((stored_address + 1) / float(32)))
+                temp = int(math.ceil((stored_address + 1) / float(32)))
                 if temp > current_miu_i:
                     current_miu_i = temp
                 mem[stored_address] = stored_value  # note that the stored_value could be symbolic
@@ -2207,7 +2207,7 @@ def sym_exec_ins(params):
         perform_taint_analysis(vertices[params.pre_block], vertices[params.block], next_blocks, previous_pc, instr_parts[0], previous_stack, stack, arithmetic_errors)
     except Exception as e:
         traceback.print_exc()
-        print "Exception in taint analysis: "+str(e)
+        print("Exception in taint analysis: "+str(e))
         raise e
 
     try:
@@ -2379,7 +2379,7 @@ def check_callstack_attack(disasm):
     problematic_instructions = ['CALL', 'CALLCODE']
     pcs = []
     try:
-        for i in xrange(0, len(disasm)):
+        for i in range(0, len(disasm)):
             instruction = disasm[i]
             if instruction[1] in problematic_instructions:
                 pc = int(instruction[0])
@@ -2511,13 +2511,13 @@ def detect_arithmetic_errors():
     global results
 
     if global_params.DEBUG_MODE:
-        print ""
-        print "Number of arithmetic errors: "+str(len(arithmetic_errors))
+        print("")
+        print("Number of arithmetic errors: "+str(len(arithmetic_errors)))
         for error in arithmetic_errors:
             if error["validated"]:
-                print error
-                print error["instruction"]
-                print ""
+                print(error)
+                print(error["instruction"])
+                print("")
 
     arithmetic_bug_found = any([arithmetic_error for arithmetic_error in arithmetic_errors if arithmetic_error["validated"]])
     overflow_bug_found   = any([ErrorTypes.OVERFLOW in arithmetic_error["type"] for arithmetic_error in arithmetic_errors if arithmetic_error["validated"]])
@@ -2763,8 +2763,8 @@ def detect_bugs():
     global global_problematic_pcs
 
     if global_params.DEBUG_MODE:
-        print "Number of total paths: "+str(total_no_of_paths)
-        print ""
+        print("Number of total paths: "+str(total_no_of_paths))
+        print("")
 
     if instructions:
         evm_code_coverage = float(len(visited_pcs)) / len(instructions.keys()) * 100
@@ -2863,7 +2863,7 @@ def handler(signum, frame):
 
     if global_params.UNIT_TEST == 2 or global_params.UNIT_TEST == 3:
         exit(TIME_OUT)
-    print "!!! SYMBOLIC EXECUTION TIMEOUT !!!"
+    print("!!! SYMBOLIC EXECUTION TIMEOUT !!!")
     g_timeout = True
     raise Exception("timeout")
 
@@ -2872,8 +2872,8 @@ def results_for_web():
 
     results["filename"] = source_map.cname.split(":")[0].split("/")[-1]
     results["cname"] = source_map.cname.split(":")[1]
-    print "======= results ======="
-    print json.dumps(results)
+    print("======= results =======")
+    print(json.dumps(results))
 
 def main(contract, contract_sol, _source_map = None):
     global c_name

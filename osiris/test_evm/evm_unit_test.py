@@ -21,8 +21,8 @@ class EvmUnitTest(object):
         return storage if storage != None else {"0": "0"}
 
     def gas_info(self):
-        gas_limit = long(self.data['exec']['gas'], 0)
-        gas_remaining = long(self.data['gas'], 0)
+        gas_limit = int(self.data['exec']['gas'], 0)
+        gas_remaining = int(self.data['gas'], 0)
         return (gas_limit, gas_remaining)
 
     def run_test(self):
@@ -53,10 +53,10 @@ class EvmUnitTest(object):
 
     def _compare_storage_value(self, global_state):
         for key, value in self.storage().items():
-            key, value = long(key, 0), long(value, 0)
+            key, value = int(key, 0), int(value, 0)
 
             try:
-                storage = to_unsigned(long(global_state['Ia'][key]))
+                storage = to_unsigned(int(global_state['Ia'][key]))
             except:
                 return EMPTY_RESULT
 
@@ -74,7 +74,7 @@ class EvmUnitTest(object):
 
     def compare_symbolic(self, global_state):
         for key, value in self.storage().items():
-            key, value = long(key, 0), long(value, 0)
+            key, value = int(key, 0), int(value, 0)
             try:
                 symExec_result = global_state['Ia'][str(key)]
             except:

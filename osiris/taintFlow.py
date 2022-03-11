@@ -113,9 +113,9 @@ def introduce_taint(instruction, pc, arithmetic_errors):
             taint.append(arithmetic_error)
     if global_params.DEBUG_MODE and taint:
         if taint:
-            print "Introducing taint: "
+            print("Introducing taint: ")
             for object in taint:
-                print " --> "+str(object)
+                print(" --> "+str(object))
     return taint
 
 def propagate_taint(taint, tainted_stack, tainted_memory, tainted_storage, instruction, current_stack, previous_block, current_block, next_blocks, arithmetic_errors, sha3_list, false_positives, strings):
@@ -372,18 +372,18 @@ def propagate_taint(taint, tainted_stack, tainted_memory, tainted_storage, instr
                         if arithmetic_error["pc"] == false_positive:
                             if global_params.DEBUG_MODE:
                                 print("================== FALSE POSITIVE =================")
-                                print "Removing error from list: "
-                                print arithmetic_error
-                                print arithmetic_error["instruction"]
+                                print("Removing error from list: ")
+                                print(arithmetic_error)
+                                print(arithmetic_error["instruction"])
                                 print("===================================================")
                             arithmetic_errors.remove(arithmetic_error)
         # OUT (insert to stack)
         for i in range(len(instruction.data_out)):
             tainted_stack.insert(i, TaintObject(current_stack[i], taint))
         if global_params.DEBUG_MODE and taint and len(instruction.data_out) > 0:
-            print "Propagating taint: "
+            print("Propagating taint: ")
             for object in taint:
-                print " --> "+str(object)
+                print(" --> "+str(object))
 
     for arithmetic_error in arithmetic_errors:
         # Strings
@@ -440,7 +440,7 @@ def propagate_taint(taint, tainted_stack, tainted_memory, tainted_storage, instr
 def check_taint(tainted_stack, tainted_memory, tainted_storage, instruction, sink_flows, arithmetic_errors, previous_block):
     if instruction.opcode in SINKS:
         if global_params.DEBUG_MODE:
-            print "Checking taint: "+str(instruction.opcode)
+            print("Checking taint: "+str(instruction.opcode))
         validated_errors = []
         if instruction.opcode == "RETURN" or instruction.opcode == "SHA3":
             s0 = tainted_stack[0].data
@@ -488,7 +488,7 @@ def check_taint(tainted_stack, tainted_memory, tainted_storage, instruction, sin
                                     validated_errors.append(tainted_object)
         if len(validated_errors) > 0:
             if global_params.DEBUG_MODE:
-                print "Validating errors: "
+                print("Validating errors: ")
 
             match = set(re.compile('Concat\(Extract\(255, 160, .+?\), Extract\(255, 96, (.+?)\)\)').findall(remove_line_break_space(tainted_stack[1].data)))
             if len(match) > 0:
@@ -516,7 +516,7 @@ def check_taint(tainted_stack, tainted_memory, tainted_storage, instruction, sin
                     validated_error["validated"] = True
                     arithmetic_errors.append(validated_error)
                 if global_params.DEBUG_MODE:
-                    print " --> "+str(validated_error)
+                    print(" --> "+str(validated_error))
                 """print ""
                 print instruction.opcode
                 print tainted_stack[0]
@@ -698,7 +698,7 @@ def perform_taint_analysis(previous_block, current_block, next_blocks, pc, opcod
 
     except:
         traceback.print_exc()
-        print "Unexpected error:", sys.exc_info()[0]
+        print("Unexpected error:", sys.exc_info()[0])
 
 def is_input_tainted(instruction):
     if instruction.opcode == "ADD" or instruction.opcode == "MUL" or instruction.opcode == "SUB" or instruction.opcode == "SDIV" or instruction.opcode == "AND" or instruction.opcode == "SIGNEXTEND":

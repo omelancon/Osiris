@@ -30,7 +30,7 @@ class BasicBlock:
         return self.falls_to
 
     def set_jump_target(self, address):
-        if isinstance(address, (int, long)):
+        if isinstance(address, int):
             self.jump_target = address
         else:
             self.jump_target = -1
@@ -45,9 +45,9 @@ class BasicBlock:
         return self.branch_expression
 
     def display(self):
-        print "================"
-        print "start address: %x" % self.start
-        print "end address: %x" % self.end
-        print "end statement type: " + self.type
+        print("================")
+        print("start address: %x" % self.start)
+        print("end address: %x" % self.end)
+        print("end statement type: " + self.type)
         for instr in self.instructions:
-            print instr
+            print(instr)

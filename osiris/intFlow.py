@@ -366,7 +366,7 @@ def multiplication_overflow_check(multiplier, multiplicand, analysis, instructio
                 print("===================================================")
             return False
     except Exception as e:
-        print e
+        print(e)
         traceback.print_exc()
         pass
     return False
