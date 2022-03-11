@@ -14,7 +14,7 @@ import z3.z3util
 
 from source_map import SourceMap
 from utils import run_command
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 
 def cmd_exists(cmd):
     '''
