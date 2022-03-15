@@ -34,6 +34,9 @@ docker run -it osiris:latest
 
 ### Install the following dependencies
 #### solc
+
+1. Get binary file from https://github.com/ethereum/solc-bin or
+2. From PPA if you're usung Ubuntu
 ```
 $ sudo add-apt-repository ppa:ethereum/ethereum
 $ sudo apt-get update
@@ -42,8 +45,8 @@ $ sudo apt-get install solc
 
 #### evm from [go-ethereum](https://github.com/ethereum/go-ethereum)
 
-1. https://geth.ethereum.org/downloads/ or
-2. By from PPA if your using Ubuntu
+1. Get binary file from https://geth.ethereum.org/downloads/ or
+2. From PPA if you're using Ubuntu
 ```
 $ sudo apt-get install software-properties-common
 $ sudo add-apt-repository -y ppa:ethereum/ethereum

@@ -30,7 +30,7 @@ class AstHelper:
         return ret
 
     def get_linearized_base_contracts(self, id, contractsById):
-        return map(lambda id: contractsById[id], contractsById[id]["attributes"]["linearizedBaseContracts"])
+        return [contractsById[id] for id in contractsById[id]["attributes"]["linearizedBaseContracts"]]
 
     def extract_state_definitions(self, c_name):
         node = self.contracts["contractsByName"][c_name]

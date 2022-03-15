@@ -124,7 +124,7 @@ def analyze(processed_evm_file, disasm_file, source_map = None):
     try:
         disasm_p = subprocess.Popen(
             ["evm", "disasm", processed_evm_file], stdout=subprocess.PIPE)
-        disasm_out = disasm_p.communicate()[0]
+        disasm_out = disasm_p.communicate()[0].decode()
     except:
         logging.critical("Disassembly failed.")
         exit()

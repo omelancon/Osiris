@@ -89,7 +89,7 @@ class SourceMap:
 
     def __get_source(self):
         fname = self.__get_filename()
-        if SourceMap.sources.has_key(fname):
+        if fname in SourceMap.sources:
             return SourceMap.sources[fname]
         else:
             SourceMap.sources[fname] = Source(fname)

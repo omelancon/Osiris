@@ -56,7 +56,7 @@ class Parameter:
             "global_state": {},
             "path_conditions_and_vars": {}
         }
-        for (attr, default) in attr_defaults.iteritems():
+        for (attr, default) in attr_defaults.items():
             setattr(self, attr, kwargs.get(attr, default))
 
     def copy(self):
@@ -321,7 +321,7 @@ def mapping_non_push_instruction(current_line_content, current_ins_address, idx,
             if name == instr_name or name == "INVALID" and instr_name == "ASSERTFAIL" or name == "KECCAK256" and instr_name == "SHA3" or name == "SELFDESTRUCT" and instr_name == "SUICIDE":
                 source_map.instr_positions[current_ins_address] = source_map.positions[idx]
                 idx += 1
-                break;
+                break
             else:
                 raise Exception("Source map error")
     return idx
@@ -608,7 +608,7 @@ def sym_exec_block(params):
         print("STACK: " + str(stack))
 
     current_edge = Edge(pre_block, block)
-    if visited_edges.has_key(current_edge):
+    if current_edge in visited_edges:
         updated_count_number = visited_edges[current_edge] + 1
         visited_edges.update({current_edge: updated_count_number})
     else:

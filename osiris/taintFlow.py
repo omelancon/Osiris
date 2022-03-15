@@ -176,7 +176,7 @@ def propagate_taint(taint, tainted_stack, tainted_memory, tainted_storage, instr
                     for tainted_object in object.taint:
                         sha3_taint.append(tainted_object)
         else:
-            for i in range(s1/32):
+            for i in range(s1//32):
                 address = s0+i*32
                 if address in tainted_memory:
                     object = tainted_memory[address]
@@ -225,7 +225,7 @@ def propagate_taint(taint, tainted_stack, tainted_memory, tainted_storage, instr
                     for tainted_object in object.taint:
                         call_taint.append(tainted_object)
         else:
-            for i in range(in1/32):
+            for i in range(in1//32):
                 address = in0+i*32
                 if address in tainted_memory:
                     object = tainted_memory[address]
@@ -242,7 +242,7 @@ def propagate_taint(taint, tainted_stack, tainted_memory, tainted_storage, instr
             else:
                 tainted_memory[out0] = TaintObject(new_var, call_taint)
         else:
-            for i in range(out1/32):
+            for i in range(out1//32):
                 address = out0+i*32
                 if len(call_taint) == 0:
                     tainted_memory[address] = TaintObject(new_var, None)
@@ -267,7 +267,7 @@ def propagate_taint(taint, tainted_stack, tainted_memory, tainted_storage, instr
                     for tainted_object in object.taint:
                         call_taint.append(tainted_object)
         else:
-            for i in range(in1/32):
+            for i in range(in1//32):
                 address = in0+i*32
                 if address in tainted_memory:
                     object = tainted_memory[address]
@@ -284,7 +284,7 @@ def propagate_taint(taint, tainted_stack, tainted_memory, tainted_storage, instr
             else:
                 tainted_memory[out0] = TaintObject(new_var, call_taint)
         else:
-            for i in range(out1/32):
+            for i in range(out1//32):
                 address = out0+i*32
                 if len(call_taint) == 0:
                     tainted_memory[address] = TaintObject(new_var, None)
@@ -456,7 +456,7 @@ def check_taint(tainted_stack, tainted_memory, tainted_storage, instruction, sin
                                     if not tainted_object in validated_errors:
                                         validated_errors.append(tainted_object)
             else:
-                for i in range(s1/32):
+                for i in range(s1//32):
                     address = s0+i*32
                     if address in tainted_memory:
                         object = tainted_memory[address]
