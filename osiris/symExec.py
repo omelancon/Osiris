@@ -2924,5 +2924,8 @@ def main(contract, contract_sol, _source_map = None):
     detect_bugs()
     closing_message()
 
+    if global_params.REPAIR:
+        log.info("\t============ Repair ============")
+
 if __name__ == '__main__':
     main(sys.argv[1])

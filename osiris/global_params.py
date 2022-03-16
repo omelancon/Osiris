@@ -71,3 +71,6 @@ RESULTS_DIR = "results/"
 
 # (Experimental) Interprocedural taint analysis (1) or Intraprocedural taint analysis (0)
 INTERPROCEDURAL_TAINT = 0
+
+# Repair bugs and output fixed bytecode
+REPAIR = 0
