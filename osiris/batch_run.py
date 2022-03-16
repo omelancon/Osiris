@@ -4,7 +4,7 @@
 import subprocess
 import shlex
 import os
-import Queue
+import queue as Queue
 import threading
 import multiprocessing
 

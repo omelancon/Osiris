@@ -145,7 +145,7 @@ def check_width_conversion(first, second, target, instruction, current_block, pa
                     print("===================================================")
             return False
     except:
-        traceback.print_exc
+        traceback.print_exc()
         pass
     return False
 
@@ -200,9 +200,9 @@ def addition_overflow_check(augend, addend, analysis, instruction, path_conditio
         max_size = max(augend_size, addend_size)
     if global_params.DEBUG_MODE:
         if augend_sign == False and addend_sign == False:
-            print("max_size: "+str(max_size))+" (unsigned)"
+            print("max_size: "+str(max_size)+" (unsigned)")
         else:
-            print("max_size: "+str(max_size))+" (signed)"
+            print("max_size: "+str(max_size)+" (signed)")
 
     # Prepare the solver
     s = Solver()
@@ -309,9 +309,9 @@ def multiplication_overflow_check(multiplier, multiplicand, analysis, instructio
         max_size = max(multiplier_size, multiplicand_size)
     if global_params.DEBUG_MODE:
         if multiplier_sign == False and multiplicand_sign == False:
-            print("max_size: "+str(max_size))+" (unsigned)"
+            print("max_size: "+str(max_size) +" (unsigned)")
         else:
-            print("max_size: "+str(max_size))+" (signed)"
+            print("max_size: "+str(max_size) +" (signed)")
 
     # Prepare the solver
     s = Solver()
@@ -422,9 +422,9 @@ def subtraction_underflow_check(minuend, subtrahend, analysis, instruction, path
         max_size = max(minuend_size, subtrahend_size)
     if global_params.DEBUG_MODE:
         if minuend_sign == False and subtrahend_sign == False:
-            print("max_size: "+str(max_size))+" (unsigned)"
+            print("max_size: " + str(max_size) + " (unsigned)")
         else:
-            print("max_size: "+str(max_size))+" (signed)"
+            print("max_size: " + str(max_size) + " (signed)")
 
     # Prepare the solver
     s = Solver()
@@ -626,15 +626,12 @@ def modulo_check(modulus, instruction, path_conditions, arithmetic_errors, arith
 
 def bvadd_no_overflow(x, y, signed=False):
     assert x.ctx_ref()==y.ctx_ref()
-    a, b = z3._coerce_exprs(x, y)
-    return BoolRef(Z3_mk_bvadd_no_overflow(a.ctx_ref(), a.as_ast(), b.as_ast(), signed))
+    return BVAddNoOverflow(x, y, signed)
 
 def bvmul_no_overflow(x, y, signed=False):
     assert x.ctx_ref()==y.ctx_ref()
-    a, b = z3._coerce_exprs(x, y)
-    return BoolRef(Z3_mk_bvmul_no_overflow(a.ctx_ref(), a.as_ast(), b.as_ast(), signed))
+    return BVMulNoOverflow(x, y, signed)
 
 def bvsub_no_underflow(x, y, signed=False):
     assert x.ctx_ref()==y.ctx_ref()
-    a, b = z3._coerce_exprs(x, y)
-    return BoolRef(Z3_mk_bvsub_no_underflow(a.ctx_ref(), a.as_ast(), b.as_ast(), signed))
+    return BVSubNoUnderflow(x, y, signed)

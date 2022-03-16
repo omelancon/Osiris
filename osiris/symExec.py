@@ -1456,7 +1456,7 @@ def sym_exec_ins(params):
             s0 = stack.pop(0)
             s1 = stack.pop(0)
             if isAllReal(s0, s1):
-                data = [mem[s0+i*32] for i in range(s1/32)]
+                data = [mem[s0+i*32] for i in range(s1//32)]
                 input = ''
                 symbolic = False
                 for value in data:
@@ -1464,7 +1464,7 @@ def sym_exec_ins(params):
                         input += str(value)
                         symbolic = True
                     else:
-                        input += binascii.unhexlify('%064x' % value)
+                        input += binascii.unhexlify('%064x' % value).decode()
                 if input in sha3_list:
                     stack.insert(0, sha3_list[input])
                 else:
@@ -1653,7 +1653,7 @@ def sym_exec_ins(params):
             no_bytes = stack.pop(0)
             current_miu_i = global_state["miu_i"]
 
-            if isAllReal(address, mem_location, current_miu_i, code_from, no_bytes) and USE_GLOBAL_BLOCKCHAIN:
+            if isAllReal(address, mem_location, current_miu_i, code_from, no_bytes) and global_params.USE_GLOBAL_BLOCKCHAIN:
                 temp = int(math.ceil((mem_location + no_bytes) / float(32)))
                 if temp > current_miu_i:
                     current_miu_i = temp

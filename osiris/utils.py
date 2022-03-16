@@ -10,9 +10,12 @@ import csv
 import re
 import difflib
 import copy
+import logging
 
 from z3 import *
 from z3.z3util import get_vars
+
+log = logging.getLogger(__name__)
 
 def ceil32(x):
     return x if x % 32 == 0 else x + 32 - (x % 32)
