@@ -244,8 +244,8 @@ def print_cfg():
     f.write('size = "240"\n')
     f.write('graph[fontname = Courier, fontsize = 14.0, labeljust = l, nojustify = true];node[shape = record];\n')
     address_width = 10
-    if len(hex(instructions.keys()[-1])) > address_width:
-        address_width = len(hex(instructions.keys()[-1]))
+    if len(hex(list(instructions.keys())[-1])) > address_width:
+        address_width = len(hex(list(instructions.keys())[-1]))
     for block in vertices.values():
         #block.display()
         address = block.get_start_address()
@@ -258,7 +258,7 @@ def print_cfg():
                 label += "{0:#0{1}x}".format(address, address_width)+" "+instruction+" **[Error: "+error_list[0]["type"]+"]**"+"\l"
             else:
                 label += "{0:#0{1}x}".format(address, address_width)+" "+instruction+"\l"
-            address += 1 + (len(instruction.split(' ')[1].replace("0x", "")) / 2)
+            address += 1 + (len(instruction.split(' ')[1].replace("0x", "")) // 2)
         if error:
             f.write(label+'",style=filled,color=red];\n')
         else:
