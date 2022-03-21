@@ -18,6 +18,7 @@ from collections import namedtuple
 from vargenerator import *
 from ethereum_data import *
 from basicblock import BasicBlock
+import basicblock
 from analysis import *
 from test_evm.global_test_params import (TIME_OUT, UNKOWN_INSTRUCTION,
                                          EXCEPTION, PICKLE_PATH)
@@ -36,6 +37,31 @@ UNSIGNED_BOUND_NUMBER = 2**256 - 1
 CONSTANT_ONES_159 = BitVecVal((1 << 160) - 1, 256)
 
 Assertion = namedtuple('Assertion', ['pc', 'model'])
+
+class EVMIntWrapper(int):
+    def __new__(cls, *args, **kwargs):
+        return super().__new__(cls, *args)
+
+    def __init__(self, *args, origin_block, origin_instruction):
+        super().__init__()
+        self._origin_block = origin_block
+        self._origin_instruction = origin_instruction
+
+    @property
+    def origin_block(self):
+        return self._origin_block
+
+    @origin_block.setter
+    def origin_block(self, val):
+        self._origin_block = val
+
+    @property
+    def origin_instruction(self):
+        return self._origin_instruction
+
+    @origin_instruction.setter
+    def origin_instruction(self, val):
+        self._origin_instruction = val
 
 class Parameter:
     def __init__(self, **kwargs):
@@ -1896,6 +1922,9 @@ def sym_exec_ins(params):
                     target_address = int(str(simplify(target_address)))
                 except:
                     raise TypeError("Target address must be an integer")
+            elif isinstance(target_address, EVMIntWrapper):
+                instr.jump_offset_origin = target_address
+
             #if vertices[start].get_jump_target() != target_address:
             vertices[start].set_jump_target(target_address)
             if target_address not in edges[start]:
@@ -1911,6 +1940,9 @@ def sym_exec_ins(params):
                     target_address = int(str(simplify(target_address)))
                 except:
                     raise TypeError("Target address must be an integer")
+            elif isinstance(target_address, EVMIntWrapper):
+                instr.jump_offset_origin = target_address
+
             vertices[start].set_jump_target(target_address)
             flag = stack.pop(0)
 
@@ -1973,7 +2005,7 @@ def sym_exec_ins(params):
     elif instr_parts[0].startswith('PUSH', 0):  # this is a push instruction
         position = int(instr_parts[0][4:], 10)
         global_state["pc"] = global_state["pc"] + 1 + position
-        pushed_value = int(instr_parts[1], 16)
+        pushed_value = EVMIntWrapper(instr_parts[1], 16, origin_instruction=instr, origin_block=vertices[params.block])
         stack.insert(0, pushed_value)
         if global_params.UNIT_TEST == 3: # test evm symbolic
             stack[0] = BitVecVal(stack[0], 256)
@@ -2926,6 +2958,13 @@ def main(contract, contract_sol, _source_map = None):
 
     if global_params.REPAIR:
         log.info("\t============ Repair ============")
+
+        vertices[0].get_instructions().insert(0, basicblock.InstructionWrapper("FOO"))
+
+        basicblock.fix_jumps(vertices, edges)
+        repaired_bytecode = basicblock.bb_to_bytecode(vertices)
+        with open(c_name.replace('.disasm', '').replace(':', '-')+'.disasm.repaired', 'w') as f:
+            f.write('\n'.join(repaired_bytecode))
 
 if __name__ == '__main__':
     main(sys.argv[1])
