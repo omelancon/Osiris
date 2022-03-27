@@ -115,10 +115,9 @@ def fix_push_location(block, instruction, value):
     else:
         raise ValueError("instruction '{instruction}' not in block")
 
+    push_size = get_push_instruction_kind(instruction)
     initial_hex = instruction.split()[1][2:]
-    new_hex = hex(value)[2:]
-    if len(new_hex) % 2 == 1:
-        new_hex = "0" + new_hex
+    new_hex = hex(value)[2:].rjust(push_size * 2, "0")
 
     if initial_hex == new_hex:
         # Do not replace is the offset is already correct
@@ -169,9 +168,11 @@ def fix_jumps(blocks, edges):
         block_type = block.get_block_type()
 
         # Update jump instructions
-        if block_type != "terminal":
+        if block_type not in ("terminal", "falls_to"):
             instructions = block.get_instructions()
             jump_instruction = instructions[-1]
+
+            assert jump_instruction in ("JUMP", "JUMPI"), "block does not end with JUMP"
 
             origin_instruction = jump_instruction.jump_offset_origin.origin_instruction
             origin_block = jump_instruction.jump_offset_origin.origin_block
@@ -189,6 +190,8 @@ def fix_jumps(blocks, edges):
             new_edges[block_start] = [new_jump_target]
         elif block_type == "conditional":
             new_edges[block_start] = sorted([block.get_falls_to(), new_jump_target])
+        elif block_type == "falls_to":
+            new_edges[block_start] = [block.get_falls_to()]
         else:
             raise NotImplementedError(f"unknown block type '{block_type}'")
 

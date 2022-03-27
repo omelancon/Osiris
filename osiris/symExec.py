@@ -227,7 +227,7 @@ def change_format():
             line = line.replace('Missing opcode 0xfe', 'ASSERTFAIL')
             line = line.replace('Missing opcode', 'INVALID')
             line = line.replace(':', '')
-            lineParts = line.split(' ')
+            lineParts = line.split()
             try: # removing initial zeroes
                 lineParts[0] = str(int(lineParts[0]))
 
@@ -284,7 +284,7 @@ def print_cfg():
                 label += "{0:#0{1}x}".format(address, address_width)+" "+instruction+" **[Error: "+error_list[0]["type"]+"]**"+"\l"
             else:
                 label += "{0:#0{1}x}".format(address, address_width)+" "+instruction+"\l"
-            address += 1 + (len(instruction.split(' ')[1].replace("0x", "")) // 2)
+            address += 1 + (len(instruction.split()[1].replace("0x", "")) // 2)
         if error:
             f.write(label+'",style=filled,color=red];\n')
         else:
@@ -318,7 +318,7 @@ def mapping_push_instruction(current_line_content, current_ins_address, idx, pos
             if name.startswith("PUSH"):
                 if name == "PUSH":
                     value = positions[idx]['value']
-                    instr_value = current_line_content.split(" ")[1]
+                    instr_value = current_line_content.split()[1]
                     if int(value, 16) == int(instr_value, 16):
                         source_map.instr_positions[current_ins_address] = source_map.positions[idx]
                         idx += 1
@@ -343,7 +343,7 @@ def mapping_non_push_instruction(current_line_content, current_ins_address, idx,
         if name.startswith("tag"):
             idx += 1
         else:
-            instr_name = current_line_content.split(" ")[0]
+            instr_name = current_line_content.split()[0]
             if name == instr_name or name == "INVALID" and instr_name == "ASSERTFAIL" or name == "KECCAK256" and instr_name == "SHA3" or name == "SELFDESTRUCT" and instr_name == "SUICIDE":
                 source_map.instr_positions[current_ins_address] = source_map.positions[idx]
                 idx += 1
@@ -379,7 +379,7 @@ def collect_vertices(tokens):
             for ptok_type, ptok_string, _, _, _ in tokens:
                 if ptok_type == NEWLINE:
                     is_new_line = True
-                    current_line_content += push_val + ' '
+                    current_line_content += push_val
                     instructions[current_ins_address] = current_line_content
                     idx = mapping_push_instruction(current_line_content, current_ins_address, idx, positions, length) if source_map else None
                     log.debug(current_line_content)
@@ -407,7 +407,7 @@ def collect_vertices(tokens):
         elif tok_type == NEWLINE:
             is_new_line = True
             log.debug(current_line_content)
-            instructions[current_ins_address] = current_line_content
+            instructions[current_ins_address] = current_line_content.strip() # The parser sometimes wrongly add a space at the end of a line
             idx = mapping_non_push_instruction(current_line_content, current_ins_address, idx, positions, length) if source_map else None
             current_line_content = ""
             continue
@@ -862,7 +862,7 @@ def sym_exec_ins(params):
 
     visited_pcs.add(global_state["pc"])
 
-    instr_parts = str.split(instr, ' ')
+    instr_parts = instr.split()
 
     previous_stack = copy_all(stack)[0]
     previous_pc = global_state["pc"]
@@ -1560,7 +1560,7 @@ def sym_exec_ins(params):
                     idx2 = source_code.index(")")
                     params_code = source_code[idx1:idx2]
                     params_list = params_code.split(",")
-                    params_list = [param.split(" ")[-1] for param in params_list]
+                    params_list = [param.split()[-1] for param in params_list]
                     param_idx = (position - 4) / 32
                     new_var_name = params_list[param_idx]
                     source_map.var_names.append(new_var_name)
@@ -2959,7 +2959,7 @@ def main(contract, contract_sol, _source_map = None):
     if global_params.REPAIR:
         log.info("\t============ Repair ============")
 
-        vertices[0].get_instructions().insert(0, basicblock.InstructionWrapper("FOO"))
+        #vertices[0].get_instructions().insert(0, basicblock.InstructionWrapper("FOO"))
 
         basicblock.fix_jumps(vertices, edges)
         repaired_bytecode = basicblock.bb_to_bytecode(vertices)
