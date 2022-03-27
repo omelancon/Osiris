@@ -10,6 +10,10 @@ class InstructionWrapper(str):
         super().__init__()
 
     @property
+    def opcode(self):
+        return self.split()[0]
+
+    @property
     def jump_offset_origin(self):
         return self._jump_offset_origin
 

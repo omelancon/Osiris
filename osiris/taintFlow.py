@@ -7,6 +7,7 @@ from utils import *
 from opcodes import *
 from intFlow import *
 from vargenerator import *
+from basicblock import InstructionWrapper
 
 SOURCES = set(['CALLDATALOAD', 'CALLDATACOPY', 'CALLVALUE', 'SLOAD'])
 SINKS   = set(['SSTORE', 'JUMPI', 'RETURN', 'CALL'])
@@ -52,10 +53,16 @@ class TaintObject:
         return self.__dict__ == _other.__dict__
 
 class InstructionObject:
-    def __init__(self, _opcode, _data_in, _data_out):
-        self.opcode = _opcode
+    def __init__(self, instruction, _data_in, _data_out):
+        assert isinstance(instruction, InstructionWrapper)
+        self.instruction = instruction
         self.data_in = _data_in
         self.data_out = _data_out
+
+    @property
+    def opcode(self):
+        return self.instruction.opcode
+
     def __str__(self):
         string = '{'
         string += '"opcode":"'+str(self.opcode)+'",'
@@ -608,7 +615,7 @@ def remove_taint(matches, taint, tainted_stack, tainted_memory, tainted_storage,
                     if len(tainted_storage[address].taint) == 0:
                         tainted_storage[address].taint = None
 
-def perform_taint_analysis(previous_block, current_block, next_blocks, pc, opcode, previous_stack, current_stack, arithmetic_errors):
+def perform_taint_analysis(previous_block, current_block, next_blocks, pc, instr, previous_stack, current_stack, arithmetic_errors):
     global branches
     global tainted_stack
     global tainted_memory
@@ -618,6 +625,8 @@ def perform_taint_analysis(previous_block, current_block, next_blocks, pc, opcod
     global sha3_list
     global false_positives
     global strings
+
+    opcode = instr.opcode
 
     try:
         # Get number of items taken/added to stack by this opcode
@@ -635,7 +644,7 @@ def perform_taint_analysis(previous_block, current_block, next_blocks, pc, opcod
             data_out.append(current_stack[i])
 
         # Create an instruction object
-        instruction = InstructionObject(opcode, data_in, data_out)
+        instruction = InstructionObject(instr, data_in, data_out)
 
         # Load tainted stack, memory and storage if we are at a branch
         if pc in branches and previous_block.get_end_address() in branches[pc]:

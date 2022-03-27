@@ -899,7 +899,7 @@ def sym_exec_ins(params):
     elif instr_parts[0] == "ADD":
         if len(stack) > 1:
             global_state["pc"] = global_state["pc"] + 1
-            instruction_object = InstructionObject(instr_parts[0], [], [])
+            instruction_object = InstructionObject(instr, [], [])
             first = stack.pop(0)
             second = stack.pop(0)
             instruction_object.data_in = [first, second]
@@ -925,7 +925,7 @@ def sym_exec_ins(params):
     elif instr_parts[0] == "MUL":
         if len(stack) > 1:
             global_state["pc"] = global_state["pc"] + 1
-            instruction_object = InstructionObject(instr_parts[0], [], [])
+            instruction_object = InstructionObject(instr, [], [])
             first = stack.pop(0)
             second = stack.pop(0)
             instruction_object.data_in = [first, second]
@@ -945,7 +945,7 @@ def sym_exec_ins(params):
     elif instr_parts[0] == "SUB":
         if len(stack) > 1:
             global_state["pc"] = global_state["pc"] + 1
-            instruction_object = InstructionObject(instr_parts[0], [], [])
+            instruction_object = InstructionObject(instr, [], [])
             first = stack.pop(0)
             second = stack.pop(0)
             instruction_object.data_in = [first, second]
@@ -968,7 +968,7 @@ def sym_exec_ins(params):
     elif instr_parts[0] == "DIV":
         if len(stack) > 1:
             global_state["pc"] = global_state["pc"] + 1
-            instruction_object = InstructionObject(instr_parts[0], [], [])
+            instruction_object = InstructionObject(instr, [], [])
             first = stack.pop(0)
             second = stack.pop(0)
             instruction_object.data_in = [first, second]
@@ -1002,7 +1002,7 @@ def sym_exec_ins(params):
     elif instr_parts[0] == "SDIV":
         if len(stack) > 1:
             global_state["pc"] = global_state["pc"] + 1
-            instruction_object = InstructionObject(instr_parts[0], [], [])
+            instruction_object = InstructionObject(instr, [], [])
             first = stack.pop(0)
             second = stack.pop(0)
             instruction_object.data_in = [first, second]
@@ -1052,7 +1052,7 @@ def sym_exec_ins(params):
     elif instr_parts[0] == "MOD":
         if len(stack) > 1:
             global_state["pc"] = global_state["pc"] + 1
-            instruction_object = InstructionObject(instr_parts[0], [], [])
+            instruction_object = InstructionObject(instr, [], [])
             first = stack.pop(0)
             second = stack.pop(0)
             instruction_object.data_in = [first, second]
@@ -1087,7 +1087,7 @@ def sym_exec_ins(params):
     elif instr_parts[0] == "SMOD":
         if len(stack) > 1:
             global_state["pc"] = global_state["pc"] + 1
-            instruction_object = InstructionObject(instr_parts[0], [], [])
+            instruction_object = InstructionObject(instr, [], [])
             first = stack.pop(0)
             second = stack.pop(0)
             instruction_object.data_in = [first, second]
@@ -1131,7 +1131,7 @@ def sym_exec_ins(params):
     elif instr_parts[0] == "ADDMOD":
         if len(stack) > 2:
             global_state["pc"] = global_state["pc"] + 1
-            instruction_object = InstructionObject(instr_parts[0], [], [])
+            instruction_object = InstructionObject(instr, [], [])
             first = stack.pop(0)
             second = stack.pop(0)
             third = stack.pop(0)
@@ -1167,7 +1167,7 @@ def sym_exec_ins(params):
     elif instr_parts[0] == "MULMOD":
         if len(stack) > 2:
             global_state["pc"] = global_state["pc"] + 1
-            instruction_object = InstructionObject(instr_parts[0], [], [])
+            instruction_object = InstructionObject(instr, [], [])
             first = stack.pop(0)
             second = stack.pop(0)
             third = stack.pop(0)
@@ -1220,7 +1220,7 @@ def sym_exec_ins(params):
     elif instr_parts[0] == "SIGNEXTEND":
         if len(stack) > 1:
             global_state["pc"] = global_state["pc"] + 1
-            instruction_object = InstructionObject(instr_parts[0], [], [])
+            instruction_object = InstructionObject(instr, [], [])
             first = stack.pop(0)
             second = stack.pop(0)
             instruction_object.data_in = [first, second]
@@ -1269,7 +1269,7 @@ def sym_exec_ins(params):
     elif instr_parts[0] == "LT":
         if len(stack) > 1:
             global_state["pc"] = global_state["pc"] + 1
-            instruction_object = InstructionObject(instr_parts[0], [], [])
+            instruction_object = InstructionObject(instr, [], [])
             first = stack.pop(0)
             second = stack.pop(0)
             instruction_object.data_in = [first, second]
@@ -1292,7 +1292,7 @@ def sym_exec_ins(params):
     elif instr_parts[0] == "GT":
         if len(stack) > 1:
             global_state["pc"] = global_state["pc"] + 1
-            instruction_object = InstructionObject(instr_parts[0], [], [])
+            instruction_object = InstructionObject(instr, [], [])
             first = stack.pop(0)
             second = stack.pop(0)
             instruction_object.data_in = [first, second]
@@ -1315,7 +1315,7 @@ def sym_exec_ins(params):
     elif instr_parts[0] == "SLT":  # Not fully faithful to signed comparison
         if len(stack) > 1:
             global_state["pc"] = global_state["pc"] + 1
-            instruction_object = InstructionObject(instr_parts[0], [], [])
+            instruction_object = InstructionObject(instr, [], [])
             first = stack.pop(0)
             second = stack.pop(0)
             instruction_object.data_in = [first, second]
@@ -1338,7 +1338,7 @@ def sym_exec_ins(params):
     elif instr_parts[0] == "SGT":  # Not fully faithful to signed comparison
         if len(stack) > 1:
             global_state["pc"] = global_state["pc"] + 1
-            instruction_object = InstructionObject(instr_parts[0], [], [])
+            instruction_object = InstructionObject(instr, [], [])
             first = stack.pop(0)
             second = stack.pop(0)
             instruction_object.data_in = [first, second]
@@ -1395,7 +1395,7 @@ def sym_exec_ins(params):
     elif instr_parts[0] == "AND":
         if len(stack) > 1:
             global_state["pc"] = global_state["pc"] + 1
-            instruction_object = InstructionObject(instr_parts[0], [], [])
+            instruction_object = InstructionObject(instr, [], [])
             first = stack.pop(0)
             second = stack.pop(0)
             instruction_object.data_in = [first, second]
@@ -2236,7 +2236,7 @@ def sym_exec_ins(params):
             for edge in edges[start]:
                 if edge in vertices:
                     next_blocks.append(vertices[edge])
-        perform_taint_analysis(vertices[params.pre_block], vertices[params.block], next_blocks, previous_pc, instr_parts[0], previous_stack, stack, arithmetic_errors)
+        perform_taint_analysis(vertices[params.pre_block], vertices[params.block], next_blocks, previous_pc, instr, previous_stack, stack, arithmetic_errors)
     except Exception as e:
         traceback.print_exc()
         print("Exception in taint analysis: "+str(e))
