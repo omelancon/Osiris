@@ -45,6 +45,31 @@ class BasicBlock:
     def __bool__(self):
         return True
 
+    @classmethod
+    def from_instruction_objects(cls, start, type, instructions, jump_target=None):
+        block = cls(start, None)
+        block.extend_instruction_objects(instructions)
+
+        falls_to = start + len(block)
+
+        block.set_end_address(falls_to - 1)
+        block.set_block_type(type)
+
+        if type != "unconditional":
+            block.set_falls_to(falls_to if type != "terminal" else 0)
+
+        if jump_target is not None:
+            block.set_jump_target(jump_target)
+
+        return block
+
+
+    @classmethod
+    def from_instructions(cls, start, type, instructions, jump_target=None):
+        return cls.from_instruction_objects(start, type,
+                                            [InstructionWrapper(op, block=None) for op in instructions],
+                                            jump_target=jump_target)
+
     def get_start_address(self):
         return self.start
 
@@ -59,6 +84,18 @@ class BasicBlock:
 
     def add_instruction(self, instruction):
         self.instructions.append(InstructionWrapper(instruction, block=self))
+
+    def extend_instructions(self, instructions):
+        for inst in instructions:
+            self.add_instruction(inst)
+
+    def add_instruction_object(self, instruction):
+        instruction.block = self
+        self.instructions.append(instruction)
+
+    def extend_instruction_objects(self, instructions):
+        for inst in instructions:
+            self.add_instruction_object(inst)
 
     def get_instructions(self):
         return self.instructions
@@ -98,6 +135,20 @@ class BasicBlock:
         for instr in self.instructions:
             print(instr)
 
+    def instruction_index(self, instruction):
+        block_instructions = self.get_instructions()
+        for i, block_inst in enumerate(block_instructions):
+            if instruction is block_inst:
+                return i
+            else:
+                while block_inst is not None:
+                    if block_inst.old is instruction:
+                        return i
+                    else:
+                        block_inst = block_inst.old
+        else:
+            raise ValueError("instruction '{instruction}' not in block")
+
 def get_push_instruction_kind(inst):
     if inst.startswith("PUSH"):
         return int(re.match(r"PUSH(\d+)", inst).group(1))
@@ -114,11 +165,7 @@ def fix_push_location(block, instruction, value):
     assert instruction.startswith("PUSH")
 
     block_instructions = block.get_instructions()
-    for i, block_inst in enumerate(block_instructions):
-        if instruction is block_inst or block_inst.old is instruction:
-            break
-    else:
-        raise ValueError("instruction '{instruction}' not in block")
+    i = block.instruction_index(instruction)
 
     push_size = get_push_instruction_kind(instruction)
     initial_hex = instruction.split()[1][2:]

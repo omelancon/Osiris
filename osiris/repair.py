@@ -1,0 +1,87 @@
+import re
+
+import basicblock
+
+REVERT_INSTRUCTIONS =    ["JUMPDEST", "PUSH1 0x00", "DUP1", "REVERT"]
+
+ADD_WITH_OVERFLOW_FLAG = [           # stack
+                                     # a b
+                          "DUP1",    # a a b
+                          "SWAP2",   # b a a
+                          "ADD",     # sum a
+                          "SWAP1",   # a sum
+                          "DUP2",    # sum a sum
+                          "LT",      # overflow sum
+                         ]
+
+def split_block(block, vertices, edges):
+    # Takes in a block with a JUMP in the middle and updates vertices and edges to split this block into two
+    # The reason this code is somewhat messy is that the data structure used ot represent basic blocks used
+    # starting position in bytecode as identifiers for blocks. This is not the best when we want to mutate the
+    # blocks. Thus a lot of energy is put in keeping position-based identifiers working
+    # Note that actual position are broken after this, but the call to "fix_jumps" sorts everything out
+
+    instructions = block.get_instructions()
+    for i, inst in enumerate(instructions):
+        if inst in ("JUMP", "JUMPI"):
+            break
+
+    assert i < len(instructions) - 1, "split block without middle jump"
+
+    new_block_instructions = instructions[i+1:]
+    instructions[:] = instructions[:i+1]
+    new_falls_to = block.get_start_address() + 1
+
+    # Create new block with tail of existing block
+    new_block = basicblock.BasicBlock.from_instruction_objects(new_falls_to,
+                                                               block.get_block_type(),
+                                                               new_block_instructions,
+                                                               block.get_jump_target())
+    vertices[new_falls_to] = new_block
+
+    # Adjust existing block
+    jump_destination = int(re.match(r"PUSH\d+ 0x([0-9a-fA-F]+)", inst.jump_offset_origin).group(1), 16)
+    block.set_block_type("conditional" if inst == "JUMPI" else "unconditional")
+    block.set_falls_to(new_falls_to)
+    block.set_end_address(new_falls_to - 1)
+    block.set_jump_target(jump_destination)
+
+    # Adjust edges
+    existing_block_start = block.get_start_address()
+    edges[new_falls_to] = edges[existing_block_start]
+    edges[existing_block_start] = [jump_destination]
+    if inst == "JUMPI": edges[existing_block_start].append(new_falls_to)
+
+    basicblock.fix_jumps(vertices, edges)
+
+def repair(arithmetic_errors, vertices, edges):
+    max_block_start = max(vertices)
+    revert_block_index = max_block_start + len(vertices[max_block_start])
+    revert_block = basicblock.BasicBlock.from_instructions(revert_block_index, "terminal", REVERT_INSTRUCTIONS)
+    vertices[revert_block_index] = revert_block
+
+    jump_to_revert_hex = hex(revert_block_index)[2:]
+    if len(jump_to_revert_hex) % 2 == 1: jump_to_revert_hex = "0" + jump_to_revert_hex
+
+    jump_kind = len(jump_to_revert_hex) // 2
+
+    for error in arithmetic_errors:
+        if not error['validated']:
+            continue
+
+        instruction = error["instruction"].instruction
+        block = instruction.block
+        index = block.instruction_index(instruction)
+        block_instructions = block.get_instructions()
+
+        push_jump_offset_instruction = basicblock.InstructionWrapper(f"PUSH{jump_kind} 0x{jump_to_revert_hex}",
+                                                                     block=block)
+        jumpi_instruction = basicblock.InstructionWrapper("JUMPI", block=block)
+        jumpi_instruction.jump_offset_origin = push_jump_offset_instruction
+
+        if error["type"] == "Overflow":
+            if instruction == "ADD":
+                block_instructions[index:index+1] = [basicblock.InstructionWrapper(op, block=block)
+                                                     for op in ADD_WITH_OVERFLOW_FLAG] \
+                                                    + [push_jump_offset_instruction, jumpi_instruction]
+                split_block(block, vertices, edges)

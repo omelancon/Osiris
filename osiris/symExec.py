@@ -2951,7 +2951,7 @@ def main(contract, contract_sol, _source_map = None):
     if global_params.REPAIR:
         log.info("\t============ Repair ============")
 
-        #vertices[0].get_instructions().insert(0, basicblock.InstructionWrapper("FOO"))
+        #vertices[0].get_instructions().insert(0, basicblock.InstructionWrapper("FOO", block=vertices[0]))
 
         repair.repair(arithmetic_errors, vertices, edges)
 
