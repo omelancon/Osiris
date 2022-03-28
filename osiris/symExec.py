@@ -2957,8 +2957,14 @@ def main(contract, contract_sol, _source_map = None):
 
         basicblock.fix_jumps(vertices, edges)
         repaired_bytecode = basicblock.bb_to_bytecode(vertices)
+        indexed_bytecode = []
+        index = 0
+        for b in repaired_bytecode:
+            indexed_bytecode.append((index, b))
+            index += len(b)
+
         with open(c_name.replace('.disasm', '').replace(':', '-')+'.disasm.repaired', 'w') as f:
-            f.write('\n'.join(repaired_bytecode))
+            f.write('\n'.join(f"{i} {b}" for i, b in indexed_bytecode))
 
 if __name__ == '__main__':
     main(sys.argv[1])

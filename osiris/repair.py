@@ -14,6 +14,16 @@ ADD_WITH_OVERFLOW_FLAG = [           # stack
                           "LT",      # overflow sum
                          ]
 
+SUB_WITH_UNDERFLOW_FLAG = [          # stack
+                                     # a b
+                          "DUP1",    # a a b
+                          "SWAP2",   # b a a
+                          "SUB",     # diff a
+                          "SWAP1",   # a diff
+                          "DUP2",    # diff a diff
+                          "GT",      # underflow sum
+                         ]
+
 def split_block(block, vertices, edges):
     # Takes in a block with a JUMP in the middle and updates vertices and edges to split this block into two
     # The reason this code is somewhat messy is that the data structure used ot represent basic blocks used
@@ -83,5 +93,11 @@ def repair(arithmetic_errors, vertices, edges):
             if instruction == "ADD":
                 block_instructions[index:index+1] = [basicblock.InstructionWrapper(op, block=block)
                                                      for op in ADD_WITH_OVERFLOW_FLAG] \
+                                                    + [push_jump_offset_instruction, jumpi_instruction]
+                split_block(block, vertices, edges)
+        elif error["type"] == "Underflow":
+            if instruction == "SUB":
+                block_instructions[index:index+1] = [basicblock.InstructionWrapper(op, block=block)
+                                                     for op in SUB_WITH_UNDERFLOW_FLAG] \
                                                     + [push_jump_offset_instruction, jumpi_instruction]
                 split_block(block, vertices, edges)

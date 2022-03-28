@@ -10,6 +10,13 @@ class InstructionWrapper(str):
         self.block = block
         super().__init__()
 
+    def __len__(self):
+        push_kind = get_push_instruction_kind(self)
+        if push_kind is None:
+            return 1
+        else:
+            return push_kind + 1
+
     @property
     def opcode(self):
         return self.split()[0]
