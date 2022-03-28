@@ -24,6 +24,7 @@ from test_evm.global_test_params import (TIME_OUT, UNKOWN_INSTRUCTION,
                                          EXCEPTION, PICKLE_PATH)
 from validator import Validator
 import global_params
+import repair
 
 from intFlow import *
 from taintFlow import *
@@ -42,18 +43,9 @@ class EVMIntWrapper(int):
     def __new__(cls, *args, **kwargs):
         return super().__new__(cls, *args)
 
-    def __init__(self, *args, origin_block, origin_instruction):
+    def __init__(self, *args, origin_instruction):
         super().__init__()
-        self._origin_block = origin_block
         self._origin_instruction = origin_instruction
-
-    @property
-    def origin_block(self):
-        return self._origin_block
-
-    @origin_block.setter
-    def origin_block(self, val):
-        self._origin_block = val
 
     @property
     def origin_instruction(self):
@@ -1923,7 +1915,7 @@ def sym_exec_ins(params):
                 except:
                     raise TypeError("Target address must be an integer")
             elif isinstance(target_address, EVMIntWrapper):
-                instr.jump_offset_origin = target_address
+                instr.jump_offset_origin = target_address.origin_instruction
 
             #if vertices[start].get_jump_target() != target_address:
             vertices[start].set_jump_target(target_address)
@@ -1941,7 +1933,7 @@ def sym_exec_ins(params):
                 except:
                     raise TypeError("Target address must be an integer")
             elif isinstance(target_address, EVMIntWrapper):
-                instr.jump_offset_origin = target_address
+                instr.jump_offset_origin = target_address.origin_instruction
 
             vertices[start].set_jump_target(target_address)
             flag = stack.pop(0)
@@ -2005,7 +1997,7 @@ def sym_exec_ins(params):
     elif instr_parts[0].startswith('PUSH', 0):  # this is a push instruction
         position = int(instr_parts[0][4:], 10)
         global_state["pc"] = global_state["pc"] + 1 + position
-        pushed_value = EVMIntWrapper(instr_parts[1], 16, origin_instruction=instr, origin_block=vertices[params.block])
+        pushed_value = EVMIntWrapper(instr_parts[1], 16, origin_instruction=instr)
         stack.insert(0, pushed_value)
         if global_params.UNIT_TEST == 3: # test evm symbolic
             stack[0] = BitVecVal(stack[0], 256)
@@ -2960,6 +2952,8 @@ def main(contract, contract_sol, _source_map = None):
         log.info("\t============ Repair ============")
 
         #vertices[0].get_instructions().insert(0, basicblock.InstructionWrapper("FOO"))
+
+        repair.repair(arithmetic_errors, vertices, edges)
 
         basicblock.fix_jumps(vertices, edges)
         repaired_bytecode = basicblock.bb_to_bytecode(vertices)

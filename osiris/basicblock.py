@@ -4,9 +4,10 @@ class InstructionWrapper(str):
     def __new__(cls, *args, **kwargs):
         return super().__new__(cls, *args)
 
-    def __init__(self, *args, old=None):
+    def __init__(self, *args, block, old=None):
         self._jump_offset_origin = None
         self.old = old
+        self.block = block
         super().__init__()
 
     @property
@@ -19,7 +20,7 @@ class InstructionWrapper(str):
 
     @jump_offset_origin.setter
     def jump_offset_origin(self, val):
-        if self._jump_offset_origin is None or self._jump_offset_origin == val:
+        if self._jump_offset_origin is None or self._jump_offset_origin is val:
             self._jump_offset_origin = val
         else:
             raise RuntimeError(f"multiple origins for {self}")
@@ -57,7 +58,7 @@ class BasicBlock:
         self.end = address
 
     def add_instruction(self, instruction):
-        self.instructions.append(InstructionWrapper(instruction))
+        self.instructions.append(InstructionWrapper(instruction, block=self))
 
     def get_instructions(self):
         return self.instructions
@@ -130,7 +131,7 @@ def fix_push_location(block, instruction, value):
     else:
         push_size = len(new_hex) // 2
 
-        new_instruction = InstructionWrapper(f"PUSH{push_size} 0x{new_hex}", old=instruction)
+        new_instruction = InstructionWrapper(f"PUSH{push_size} 0x{new_hex}", block=block, old=instruction)
         block_instructions[i] = new_instruction
 
     # Indicate whether the PUSH size changed and will require further adjustment of jump offsets
@@ -178,8 +179,8 @@ def fix_jumps(blocks, edges):
 
             assert jump_instruction in ("JUMP", "JUMPI"), "block does not end with JUMP"
 
-            origin_instruction = jump_instruction.jump_offset_origin.origin_instruction
-            origin_block = jump_instruction.jump_offset_origin.origin_block
+            origin_instruction = jump_instruction.jump_offset_origin
+            origin_block = origin_instruction.block
 
             if not origin_instruction:
                 raise RuntimeError("jump to dynamic location")
