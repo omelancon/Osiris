@@ -147,8 +147,10 @@ Whigh = ("JUMPI")
 Wext = ("EXTCODESIZE")
 
 def get_opcode(opcode):
-    if opcode in opcodes:
-        return opcodes[opcode]
+    opcode_data = opcodes.get(opcode, None)
+    if opcode_data is not None:
+        return [hex(opcode_data[0]), *opcode_data[1:]]
+
     # check PUSHi
     for i in range(32):
         if opcode == 'PUSH' + str(i + 1):
@@ -164,6 +166,22 @@ def get_opcode(opcode):
         if opcode == 'SWAP' + str(i + 1):
             return [hex(0x90 + i), i + 2, i + 2]
     raise ValueError('Bad Opcode' + opcode)
+
+
+def assembly_to_hex(instructions):
+    hex_instructions = []
+
+    for inst in instructions:
+        h = get_opcode(inst.opcode)[0][2:].zfill(2)
+        hex_instructions.append(h)
+        if inst.startswith("PUSH"):
+            pushed = inst.split()[-1]
+            if pushed.startswith("0x"):
+                pushed = pushed[2:]
+
+            hex_instructions.append(pushed)
+
+    return ''.join(hex_instructions)
 
 
 def get_ins_cost(opcode):

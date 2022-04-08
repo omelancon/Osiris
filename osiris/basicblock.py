@@ -6,7 +6,12 @@ class InstructionWrapper(str):
 
     def __init__(self, *args, block, old=None):
         self._jump_offset_origin = None
-        self.old = old
+        self._old = None
+        self._new = None
+
+        if old is not None:
+            self.old = old
+
         self.block = block
         super().__init__()
 
@@ -16,6 +21,22 @@ class InstructionWrapper(str):
             return 1
         else:
             return push_kind + 1
+
+    @property
+    def old(self):
+        return self._old
+
+    @old.setter
+    def old(self, other):
+        self._old = other
+        other._new = self
+
+    @property
+    def newest(self):
+        inst = self
+        while inst._new is not None:
+            inst = inst._new
+        return inst
 
     @property
     def opcode(self):
@@ -103,6 +124,10 @@ class BasicBlock:
     def extend_instruction_objects(self, instructions):
         for inst in instructions:
             self.add_instruction_object(inst)
+
+    def reset_instructions_owner(self):
+        for inst in self.instructions:
+            inst.block = self
 
     def get_instructions(self):
         return self.instructions
@@ -200,6 +225,9 @@ def fix_jumps(blocks, edges):
     new_blocks = {}
     new_edges = {}
     sorted_blocks = get_sorted_blocks(blocks)
+    #old_start_addresses = {}
+    old_jump_targets = {}
+    #old_falls_tos = {}
 
     # Update locations
     offset = 0
@@ -209,6 +237,10 @@ def fix_jumps(blocks, edges):
 
         # Write new values
         new_falls_to = offset + block_len
+
+        #old_start_addresses[block] = block.get_start_address()
+        old_jump_targets[block] = block.get_jump_target()
+        #old_falls_tos[block] = block.get_falls_to()
 
         block.set_start_address(offset)
         block.set_falls_to(new_falls_to)
@@ -222,7 +254,8 @@ def fix_jumps(blocks, edges):
 
     for block in sorted_blocks:
         block_start = block.get_start_address()
-        new_jump_target = blocks[block.get_jump_target()].start
+        old_jump_target = old_jump_targets[block]
+        new_jump_target = blocks[old_jump_target].start
         block.set_jump_target(new_jump_target)
         block_type = block.get_block_type()
 

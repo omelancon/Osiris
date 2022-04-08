@@ -26,6 +26,9 @@ from validator import Validator
 import global_params
 import repair
 
+# This is why you don't import * in a module without a __all__
+import opcodes as opcodes_modules
+
 from intFlow import *
 from taintFlow import *
 
@@ -2965,6 +2968,11 @@ def main(contract, contract_sol, _source_map = None):
 
         with open(c_name.replace('.disasm', '').replace(':', '-')+'.disasm.repaired', 'w') as f:
             f.write('\n'.join(f"{i} {b}" for i, b in indexed_bytecode))
+
+        # See here for details on how evm can execute code
+        # https://ethereum.stackexchange.com/questions/61246/how-to-let-evm-execute-one-function-from-a-smart-contract-and-receive-outputs-in
+        hex_code = opcodes_modules.assembly_to_hex(repaired_bytecode)
+        print(hex_code)
 
 if __name__ == '__main__':
     main(sys.argv[1])

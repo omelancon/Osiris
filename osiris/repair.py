@@ -70,19 +70,18 @@ def repair(arithmetic_errors, vertices, edges):
     revert_block = basicblock.BasicBlock.from_instructions(revert_block_index, "terminal", REVERT_INSTRUCTIONS)
     vertices[revert_block_index] = revert_block
 
-    jump_to_revert_hex = hex(revert_block_index)[2:]
-    if len(jump_to_revert_hex) % 2 == 1: jump_to_revert_hex = "0" + jump_to_revert_hex
-
-    jump_kind = len(jump_to_revert_hex) // 2
-
     for error in arithmetic_errors:
         if not error['validated']:
             continue
 
-        instruction = error["instruction"].instruction
+        instruction = error["instruction"].instruction.newest
         block = instruction.block
         index = block.instruction_index(instruction)
         block_instructions = block.get_instructions()
+
+        jump_to_revert_hex = hex(revert_block.get_start_address())[2:]
+        if len(jump_to_revert_hex) % 2 == 1: jump_to_revert_hex = "0" + jump_to_revert_hex
+        jump_kind = len(jump_to_revert_hex) // 2
 
         push_jump_offset_instruction = basicblock.InstructionWrapper(f"PUSH{jump_kind} 0x{jump_to_revert_hex}",
                                                                      block=block)
