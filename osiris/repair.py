@@ -1,6 +1,9 @@
 import re
 
 import basicblock
+import opcodes
+import utils
+import re
 
 REVERT_INSTRUCTIONS =    ["JUMPDEST", "PUSH1 0x00", "DUP1", "REVERT"]
 
@@ -100,3 +103,13 @@ def repair(arithmetic_errors, vertices, edges):
                                                      for op in SUB_WITH_UNDERFLOW_FLAG] \
                                                     + [push_jump_offset_instruction, jumpi_instruction]
                 split_block(block, vertices, edges)
+
+def get_gas_cost(instructions):
+    hex_code = opcodes.assembly_to_hex(instructions)
+    command = f"evm --statdump --code {hex_code} run"
+    result = utils.run_command(command, keep_stderr=True)  # evm stat dump is sent to stderr
+
+    gas = re.search(r"gas[^\d\n]*(\d+)", result).group(1)
+
+    return int(gas)
+

@@ -25,6 +25,7 @@ opcodes = {
     "NOT": [0x19, 1, 1],
     "BYTE": [0x1a, 2, 1],
     "SHA3": [0x20, 2, 1],
+    "KECCAK256": [0x20, 2, 1],  # Consider SHA3 and KECCAK256 as alias to support multiple evm versions
     "ADDRESS": [0x30, 0, 1],
     "BALANCE": [0x31, 1, 1],
     "ORIGIN": [0x32, 0, 1],
@@ -205,7 +206,7 @@ def get_ins_cost(opcode):
         return GCOST["Gsload"]
     elif opcode == "JUMPDEST":
         return GCOST["Gjumpdest"]
-    elif opcode == "SHA3":
+    elif opcode in ("SHA3", "KECCAK256"):
         return GCOST["Gsha3"]
     elif opcode == "CREATE":
         return GCOST["Gcreate"]

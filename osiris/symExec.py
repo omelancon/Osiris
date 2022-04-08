@@ -244,13 +244,39 @@ def change_format():
     with open(c_name, 'w') as disasm_file:
         disasm_file.write("\n".join(file_contents))
 
+def preformat_instructions(disasm_lines):
+    # Adjust instructions offsets to decimal representation
+    # different versions of evm return different dissassembly format which this function tries to standardize
+
+    # Remove first line if it is not an instruction, some evm versions return the hex bytecode as disassembly on first line
+    try:
+        int(disasm_lines[0], 16)
+        disasm_lines = disasm_lines[1:]
+    except ValueError:
+        pass
+
+    # detect hexadecimal offset format
+    offsets_are_hexadecimal = any(not line.split()[0].isdecimal() for line in disasm_lines)
+
+    if offsets_are_hexadecimal:
+        formatted_lines = []
+
+        for line in disasm_lines:
+            offset, instruction = line.split(' ', maxsplit=1)
+            formatted_lines.append(f"{int(offset, 16)} {instruction}")
+
+        return formatted_lines
+    else:
+        return disasm_lines[:]
+
 def build_cfg_and_analyze():
     global source_map
 
     change_format()
     with open(c_name, 'r') as disasm_file:
-        disasm_file.readline()  # Remove first line
-        tokens = tokenize.generate_tokens(disasm_file.readline)
+        lines = preformat_instructions(disasm_file.readlines())
+        line_iterator = iter(lines)
+        tokens = tokenize.generate_tokens(lambda: next(line_iterator))
         collect_vertices(tokens)
         construct_bb()
         construct_static_edges()
@@ -1471,7 +1497,7 @@ def sym_exec_ins(params):
     #
     # 20s: SHA3
     #
-    elif instr_parts[0] == "SHA3":
+    elif instr_parts[0] in ("SHA3", "KECCAK256"):
         if len(stack) > 1:
             global_state["pc"] = global_state["pc"] + 1
             s0 = stack.pop(0)
@@ -2954,7 +2980,7 @@ def main(contract, contract_sol, _source_map = None):
     if global_params.REPAIR:
         log.info("\t============ Repair ============")
 
-        #vertices[0].get_instructions().insert(0, basicblock.InstructionWrapper("FOO", block=vertices[0]))
+        initial_bytecode = basicblock.bb_to_bytecode(vertices)
 
         repair.repair(arithmetic_errors, vertices, edges)
 
@@ -2969,10 +2995,11 @@ def main(contract, contract_sol, _source_map = None):
         with open(c_name.replace('.disasm', '').replace(':', '-')+'.disasm.repaired', 'w') as f:
             f.write('\n'.join(f"{i} {b}" for i, b in indexed_bytecode))
 
-        # See here for details on how evm can execute code
-        # https://ethereum.stackexchange.com/questions/61246/how-to-let-evm-execute-one-function-from-a-smart-contract-and-receive-outputs-in
-        hex_code = opcodes_modules.assembly_to_hex(repaired_bytecode)
-        print(hex_code)
+        initial_gas_cost = repair.get_gas_cost(initial_bytecode)
+        repaired_gas_cost = repair.get_gas_cost(repaired_bytecode)
+
+        log.info(f"\tInitial call gas cost: {initial_gas_cost}")
+        log.info(f"\tRepaired call gas cost: {repaired_gas_cost}")
 
 if __name__ == '__main__':
     main(sys.argv[1])

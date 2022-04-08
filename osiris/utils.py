@@ -327,9 +327,8 @@ def get_distinct_contracts(list_of_contracts = "concurr.csv"):
                             flag[j] = i
     print(flag)
 
-def run_command(cmd):
-    FNULL = open(os.devnull, 'w')
-    solc_p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, stderr=FNULL)
+def run_command(cmd, keep_stderr=False):
+    solc_p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.STDOUT if keep_stderr else subprocess.DEVNULL)
     return solc_p.communicate()[0].decode()
 
 def remove_line_break_space(expression):
