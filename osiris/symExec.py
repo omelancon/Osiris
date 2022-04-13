@@ -2996,13 +2996,17 @@ def main(contract, contract_sol, _source_map = None):
             f.write('\n'.join(f"{i} {b}" for i, b in indexed_bytecode))
 
         #contract_input = "09921939" + "0".zfill(32) + "42".zfill(32)  # transfer1(0, 0x42)
-        contract_input = global_params.REPAIR_INPUT
 
-        initial_gas_cost = repair.get_gas_cost(initial_bytecode, contract_input)
-        repaired_gas_cost = repair.get_gas_cost(repaired_bytecode, contract_input)
+        for contract_input in global_params.REPAIR_INPUT:
 
-        log.info(f"\tInitial call gas cost: {initial_gas_cost}")
-        log.info(f"\tRepaired call gas cost: {repaired_gas_cost}")
+            initial_gas_cost = repair.get_gas_cost(initial_bytecode, contract_input)
+            repaired_gas_cost = repair.get_gas_cost(repaired_bytecode, contract_input)
+
+            chopped_input = contract_input[:16] + "..." if len(contract_input) > 19 else contract_input
+
+            log.info(f"\tBenchmark for input {chopped_input}")
+            log.info(f"\t└> Original call gas cost: {initial_gas_cost}")
+            log.info(f"\t└> Repaired call gas cost: {repaired_gas_cost}")
 
 if __name__ == '__main__':
     main(sys.argv[1])

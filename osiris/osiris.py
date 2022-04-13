@@ -210,7 +210,7 @@ def main():
     parser.add_argument(
         "-rp", "--repair", help="Repairs bugs detected and store as .evm.repaired file.", action="store_true")
     parser.add_argument("-rinp", "--repair-input", help="Input for testing gas consumption of repaired contract",
-                        action="store", type=str, default="")
+                        action="store", type=str, default=(), nargs='+')
 
     args = parser.parse_args()
 
@@ -235,7 +235,7 @@ def main():
     global_params.CFG = 1 if args.cfg else 0
     global_params.MODEL_INPUT = 1 if args.model else 0
     global_params.REPAIR = 1 if args.repair else 0
-    global_params.REPAIR_INPUT = args.repair_input
+    global_params.REPAIR_INPUT = tuple(args.repair_input)
 
     if args.depth_limit:
         global_params.DEPTH_LIMIT = args.depth_limit
