@@ -74,3 +74,6 @@ INTERPROCEDURAL_TAINT = 0
 
 # Repair bugs and output fixed bytecode
 REPAIR = 0
+
+# INPUT TO estimate gas price of repaired code
+REPAIR_INPUT = ""

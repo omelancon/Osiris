@@ -23,7 +23,6 @@ from analysis import *
 from test_evm.global_test_params import (TIME_OUT, UNKOWN_INSTRUCTION,
                                          EXCEPTION, PICKLE_PATH)
 from validator import Validator
-import global_params
 import repair
 
 # This is why you don't import * in a module without a __all__
@@ -31,6 +30,7 @@ import opcodes as opcodes_modules
 
 from intFlow import *
 from taintFlow import *
+import global_params
 
 import web3
 from web3 import Web3, IPCProvider
@@ -2995,8 +2995,11 @@ def main(contract, contract_sol, _source_map = None):
         with open(c_name.replace('.disasm', '').replace(':', '-')+'.disasm.repaired', 'w') as f:
             f.write('\n'.join(f"{i} {b}" for i, b in indexed_bytecode))
 
-        initial_gas_cost = repair.get_gas_cost(initial_bytecode)
-        repaired_gas_cost = repair.get_gas_cost(repaired_bytecode)
+        #contract_input = "09921939" + "0".zfill(32) + "42".zfill(32)  # transfer1(0, 0x42)
+        contract_input = global_params.REPAIR_INPUT
+
+        initial_gas_cost = repair.get_gas_cost(initial_bytecode, contract_input)
+        repaired_gas_cost = repair.get_gas_cost(repaired_bytecode, contract_input)
 
         log.info(f"\tInitial call gas cost: {initial_gas_cost}")
         log.info(f"\tRepaired call gas cost: {repaired_gas_cost}")

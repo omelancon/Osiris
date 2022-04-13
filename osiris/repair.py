@@ -104,9 +104,9 @@ def repair(arithmetic_errors, vertices, edges):
                                                     + [push_jump_offset_instruction, jumpi_instruction]
                 split_block(block, vertices, edges)
 
-def get_gas_cost(instructions):
+def get_gas_cost(instructions, input):
     hex_code = opcodes.assembly_to_hex(instructions)
-    command = f"evm --statdump --code {hex_code} run"
+    command = f"evm --statdump --code {hex_code} --input {input} run"
     result = utils.run_command(command, keep_stderr=True)  # evm stat dump is sent to stderr
 
     gas = re.search(r"gas[^\d\n]*(\d+)", result).group(1)
