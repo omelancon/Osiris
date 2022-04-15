@@ -24,8 +24,26 @@ SUB_WITH_UNDERFLOW_FLAG = [          # stack
                           "SUB",     # diff a
                           "SWAP1",   # a diff
                           "DUP2",    # diff a diff
-                          "GT",      # underflow sum
+                          "GT",      # underflow diff
                          ]
+
+MUL_WITH_OUTOFBOUND_FLAG = [
+                                     # stack
+                                     # a b
+                           "DUP2"    # b a b
+                           "DUP2"    # a b a b
+                           "MUL"     # prod a b
+                           "SWAP2"   # b a prod
+                           "SWAP1"   # a b prod"
+                           "DUP2"    # b a b prod"
+                           "DUP4"    # prod b a b prod
+                           "DIV"     # a? a b prod
+                           "EQ"      # eq? b prod
+                           "SWAP1"   # b eq? prod
+                           "ISZERO"  # iszero eq prod
+                           "OR"      # ok prod
+                           "NOT"     # outofbound prod
+]
 
 def split_block(block, vertices, edges):
     # Takes in a block with a JUMP in the middle and updates vertices and edges to split this block into two

@@ -1,7 +1,11 @@
-from pprint import pprint
+import logging
 import re
 import shlex
 import subprocess
+
+debug = True
+
+logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
 
 class CallData:
     def __init__(self, function_hash, function_arguments):
@@ -10,7 +14,8 @@ class CallData:
         self.function_arguments = function_arguments
 
     def format(self):
-        return hex(self.function_hash)[2:].zfill(8) + "".join(hex(arg)[2:].zfill(32) for arg in self.function_arguments)
+        function_hash = hex(self.function_hash)[2:].zfill(8) if self.function_hash else ""
+        return function_hash + "".join(hex(arg)[2:].zfill(32) for arg in self.function_arguments)
 
 class Benchmark:
     def __init__(self, file, calls, osiris_path="./osiris/osiris.py"):
@@ -28,7 +33,11 @@ class Benchmark:
             process = subprocess.Popen(shlex.split(command),
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT)
-            yield self.parse_result(command, process.communicate()[0].decode())
+            output = process.communicate()[0].decode()
+
+            logging.debug(output)
+
+            yield self.parse_result(command, output)
 
     def parse_result(self, command, output):
         return {
@@ -52,6 +61,10 @@ benchmarks = [
     Benchmark("./tests/AdditionSubtraction.sol",
               [
                   CallData(0x09921939, [0, 42]),
+              ]),
+    Benchmark("./tests/SimpleMultiplication.sol",
+              [
+                  CallData(0x4e058a5a, [42, 42]),
               ])
 ]
 
