@@ -179,7 +179,7 @@ class BasicBlock:
                     else:
                         block_inst = block_inst.old
         else:
-            raise ValueError("instruction '{instruction}' not in block")
+            raise ValueError(f"instruction '{instruction}' not in block")
 
 def get_push_instruction_kind(inst):
     if inst.startswith("PUSH"):
@@ -266,7 +266,7 @@ def fix_jumps(blocks, edges):
 
             assert jump_instruction in ("JUMP", "JUMPI"), "block does not end with JUMP"
 
-            origin_instruction = jump_instruction.jump_offset_origin
+            origin_instruction = jump_instruction.jump_offset_origin.newest
             origin_block = origin_instruction.block
 
             if not origin_instruction:

@@ -28,21 +28,21 @@ SUB_WITH_UNDERFLOW_FLAG = [          # stack
                          ]
 
 MUL_WITH_OUTOFBOUND_FLAG = [
-                                     # stack
-                                     # a b
-                           "DUP2"    # b a b
-                           "DUP2"    # a b a b
-                           "MUL"     # prod a b
-                           "SWAP2"   # b a prod
-                           "SWAP1"   # a b prod"
-                           "DUP2"    # b a b prod"
-                           "DUP4"    # prod b a b prod
-                           "DIV"     # a? a b prod
-                           "EQ"      # eq? b prod
-                           "SWAP1"   # b eq? prod
-                           "ISZERO"  # iszero eq prod
-                           "OR"      # ok prod
-                           "NOT"     # outofbound prod
+                                      # stack
+                                      # a b
+                           "DUP2",    # b a b
+                           "DUP2",    # a b a b
+                           "MUL",     # prod a b
+                           "SWAP2",   # b a prod
+                           "SWAP1",   # a b prod"
+                           "DUP2",    # b a b prod"
+                           "DUP4",    # prod b a b prod
+                           "DIV",     # a? a b prod
+                           "EQ",      # eq? b prod
+                           "SWAP1",   # b eq? prod
+                           "ISZERO",  # iszero eq prod
+                           "OR",      # ok prod
+                           "ISZERO",  # outofbound prod
 ]
 
 def split_block(block, vertices, edges):
@@ -114,6 +114,11 @@ def repair(arithmetic_errors, vertices, edges):
                 block_instructions[index:index+1] = [basicblock.InstructionWrapper(op, block=block)
                                                      for op in ADD_WITH_OVERFLOW_FLAG] \
                                                     + [push_jump_offset_instruction, jumpi_instruction]
+                split_block(block, vertices, edges)
+            elif instruction == "MUL":
+                block_instructions[index:index + 1] = [basicblock.InstructionWrapper(op, block=block)
+                                                       for op in MUL_WITH_OUTOFBOUND_FLAG] \
+                                                      + [push_jump_offset_instruction, jumpi_instruction]
                 split_block(block, vertices, edges)
         elif error["type"] == "Underflow":
             if instruction == "SUB":

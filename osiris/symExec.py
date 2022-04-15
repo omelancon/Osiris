@@ -1945,6 +1945,8 @@ def sym_exec_ins(params):
                     raise TypeError("Target address must be an integer")
             elif isinstance(target_address, EVMIntWrapper):
                 instr.jump_offset_origin = target_address.origin_instruction
+            else:
+                raise TypeError("Target address must be an EVM int")
 
             #if vertices[start].get_jump_target() != target_address:
             vertices[start].set_jump_target(target_address)
@@ -1963,6 +1965,8 @@ def sym_exec_ins(params):
                     raise TypeError("Target address must be an integer")
             elif isinstance(target_address, EVMIntWrapper):
                 instr.jump_offset_origin = target_address.origin_instruction
+            else:
+                raise TypeError("Target address must be an EVM int")
 
             vertices[start].set_jump_target(target_address)
             flag = stack.pop(0)
