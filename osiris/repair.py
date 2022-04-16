@@ -21,6 +21,7 @@ SUB_WITH_UNDERFLOW_FLAG = [          # stack
                                      # a b
                           "DUP1",    # a a b
                           "SWAP2",   # b a a
+                          "SWAP1",   # a b a
                           "SUB",     # diff a
                           "SWAP1",   # a diff
                           "DUP2",    # diff a diff

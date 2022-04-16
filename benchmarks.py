@@ -7,6 +7,7 @@ debug = False
 
 logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
 
+
 class CallData:
     def __init__(self, function_hash, function_arguments):
         assert 0 <= function_hash <= 0xffffffff, "function hash must be 4 bytes long"
@@ -16,6 +17,7 @@ class CallData:
     def format(self):
         function_hash = hex(self.function_hash)[2:].zfill(8) if self.function_hash else ""
         return function_hash + "".join(hex(arg)[2:].zfill(32) for arg in self.function_arguments)
+
 
 class Benchmark:
     def __init__(self, file, calls, osiris_path="./osiris/osiris.py"):
@@ -69,26 +71,37 @@ class Benchmark:
         for result in results:
             original_cost = result['original_gas_cost']
             repaired_cost = result['repaired_gas_cost']
-            increase = (repaired_cost - original_cost) / original_cost * 100
+            diff = repaired_cost - original_cost
+            increase = diff / original_cost * 100
             print(f"\t- {result['function_hash']}")
             print(f"\t  └> original gas cost:      {original_cost}")
             print(f"\t  └> repaired gas cost:      {repaired_cost}")
-            print(f"\t  └> increased gas cost by:  {increase:.1f}%")
+            print(f"\t  └> increased gas cost by:  {diff} ({increase:.1f}%)")
+
 
 benchmarks = [
-    Benchmark("./tests/AdditionSubtraction.sol",
-              [
-                  CallData(0x09921939, [0, 42]),     # transfer1(0, 42)
-              ]),
-    Benchmark("./tests/SimpleMultiplication.sol",
-              [
-                  CallData(0x399ae724, [0, 42]),      # init(0, 42)
-                  CallData(0x8fefd8ea, [1015, 42]),   # check(1015, 42)
-              ])
-]
+                 Benchmark("./tests/AdditionSubtraction.sol",
+                           [
+                               CallData(0x09921939, [0, 42]),  # transfer1(0, 42)
+                           ]),
+                 Benchmark("./tests/SimpleMultiplication.sol",
+                           [
+                               CallData(0x399ae724, [0, 42]),  # init(0, 42)
+                               CallData(0x8fefd8ea, [1015, 42]),  # check(1015, 42)
+                           ]),
+                 Benchmark("./tests/SimpleAddition.sol",
+                           [
+                               CallData(0x399ae724, [0, 42]),  # init(0, 42)
+                               CallData(0x8fefd8ea, [1015, 42]),  # check(1015, 42)
+                           ]),
+                 Benchmark("./tests/SimpleSubtraction.sol",
+                           [
+                               # CallData(0x399ae724, [42, 42]),  # init(0, 42)   # remove because of bug in Solidity?
+                               CallData(0x8fefd8ea, [42, 42]),  # check(1015, 42)
+                           ]),
+             ]
 
 if __name__ == "__main__":
     for benchmark in benchmarks:
         results = benchmark.execute()
         benchmark.pprint_results(results)
-

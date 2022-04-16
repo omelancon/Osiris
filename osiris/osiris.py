@@ -66,7 +66,7 @@ def extract_bin_str(s):
     '''
     Extracts binary representation of smart contract from solc output.
     '''
-    binary_regex = r"\r?\n======= (.*?) =======\r?\nBinary of the runtime part: \r?\n(.*?)\r?\n"
+    binary_regex = r"\s+======= (.*?) =======\s+Binary of the runtime part:\s+(.*?)\s"
     contracts = re.findall(binary_regex, s)
     contracts = [contract for contract in contracts if contract[1]]
     if not contracts:
