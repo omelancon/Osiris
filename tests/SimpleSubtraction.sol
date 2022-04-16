@@ -12,7 +12,7 @@ contract C {
     }
 
     function check(uint _x1, uint _x2) {
-        if (_x1 - _x2 < 42) {
+        if (_x1 - _x2 < 0) {
             throw;
         } else {
             throw;
