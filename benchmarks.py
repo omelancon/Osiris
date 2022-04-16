@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
 
 class CallData:
     def __init__(self, function_hash, function_arguments):
-        assert 0 <= function_hash <= 0xffffffff, "function hash must be 4 bytes long"
+        assert function_hash is None or 0 <= function_hash <= 0xffffffff, "function hash must be 4 bytes long"
         self.function_hash = function_hash
         self.function_arguments = function_arguments
 
@@ -28,7 +28,15 @@ class Benchmark:
     def get_command(self):
         # TODO: we assume a Solidity file for now
         inputs = " ".join(calldata.format() for calldata in self.calls)
-        cmd = f"python {self.osiris_path} -s {self.file} --repair --repair-input {inputs}"
+
+        is_solidity = self.file.endswith(".sol")
+        is_evm = self.file.endswith(".evm")
+
+        assert is_solidity or is_evm, "unknown test file"
+
+        evm_flag = "--bytecode" if is_evm else ""
+
+        cmd = f"python {self.osiris_path} -s {self.file} {evm_flag} --repair --repair-input {inputs}"
         logging.debug(cmd)
         return cmd
 
@@ -80,26 +88,30 @@ class Benchmark:
 
 
 benchmarks = [
-                 Benchmark("./tests/AdditionSubtraction.sol",
-                           [
-                               CallData(0x09921939, [0, 42]),  # transfer1(0, 42)
-                           ]),
-                 Benchmark("./tests/SimpleMultiplication.sol",
-                           [
-                               CallData(0x399ae724, [0, 42]),  # init(0, 42)
-                               CallData(0x8fefd8ea, [1015, 42]),  # check(1015, 42)
-                           ]),
-                 Benchmark("./tests/SimpleAddition.sol",
-                           [
-                               CallData(0x399ae724, [0, 42]),  # init(0, 42)
-                               CallData(0x8fefd8ea, [1015, 42]),  # check(1015, 42)
-                           ]),
-                 Benchmark("./tests/SimpleSubtraction.sol",
-                           [
-                               # CallData(0x399ae724, [42, 42]),  # init(0, 42)   # remove because of bug in Solidity?
-                               CallData(0x8fefd8ea, [42, 42]),  # check(1015, 42)
-                           ]),
-             ]
+    Benchmark("./tests/AdditionSubtraction.sol",
+              [
+                  CallData(0x09921939, [0, 42]),  # transfer1(0, 42)
+              ]),
+    Benchmark("./tests/SimpleMultiplication.sol",
+              [
+                  CallData(0x399ae724, [0, 42]),  # init(0, 42)
+                  CallData(0x8fefd8ea, [1015, 42]),  # check(1015, 42)
+              ]),
+    Benchmark("./tests/SimpleAddition.sol",
+              [
+                  CallData(0x399ae724, [0, 42]),  # init(0, 42)
+                  CallData(0x8fefd8ea, [1015, 42]),  # check(1015, 42)
+              ]),
+    Benchmark("./tests/SimpleSubtraction.sol",
+              [
+                  # CallData(0x399ae724, [42, 42]),  # init(0, 42)   # remove because of bug in Solidity?
+                  CallData(0x8fefd8ea, [1015, 42]),  # check(1015, 42)
+              ]),
+    Benchmark("./tests/SimpleDivision.evm",
+              [
+                  CallData(None, [42]),
+              ]),
+]
 
 if __name__ == "__main__":
     for benchmark in benchmarks:

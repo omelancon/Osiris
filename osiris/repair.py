@@ -46,6 +46,16 @@ MUL_WITH_OUTOFBOUND_FLAG = [
                            "ISZERO",  # outofbound prod
 ]
 
+DIV_WITH_DIVISION_BY_ZERO_FLAG = [
+                                      # stack
+                                      # a b
+                           "DUP2",    # b a b
+                           "SWAP1",   # a b b
+                           "DIV",     # div b
+                           "SWAP1",   # b div
+                           "ISZERO",  # div-by-zero div
+]
+
 def split_block(block, vertices, edges):
     # Takes in a block with a JUMP in the middle and updates vertices and edges to split this block into two
     # The reason this code is somewhat messy is that the data structure used ot represent basic blocks used
@@ -126,6 +136,12 @@ def repair(arithmetic_errors, vertices, edges):
                 block_instructions[index:index+1] = [basicblock.InstructionWrapper(op, block=block)
                                                      for op in SUB_WITH_UNDERFLOW_FLAG] \
                                                     + [push_jump_offset_instruction, jumpi_instruction]
+                split_block(block, vertices, edges)
+        elif error["type"] == "Division":
+            if instruction == "DIV":
+                block_instructions[index:index + 1] = [basicblock.InstructionWrapper(op, block=block)
+                                                       for op in DIV_WITH_DIVISION_BY_ZERO_FLAG] \
+                                                      + [push_jump_offset_instruction, jumpi_instruction]
                 split_block(block, vertices, edges)
 
 def get_gas_cost(instructions, input):
