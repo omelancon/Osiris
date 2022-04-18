@@ -88,28 +88,44 @@ class Benchmark:
 
 
 benchmarks = [
-    Benchmark("./tests/AdditionSubtraction.sol",
+#    Benchmark("./tests/AdditionSubtraction.sol",
+#              [
+#                  CallData(0x09921939, [0, 42]),  # transfer1(0, 42)
+#              ]),
+#    Benchmark("./tests/SimpleMultiplication.sol",
+#              [
+#                  CallData(0x399ae724, [0, 42]),  # init(0, 42)
+#                  CallData(0x8fefd8ea, [1015, 42]),  # check(1015, 42)
+#              ]),
+#    Benchmark("./tests/SimpleAddition.sol",
+#              [
+#                  CallData(0x399ae724, [0, 42]),  # init(0, 42)
+#                  CallData(0x8fefd8ea, [1015, 42]),  # check(1015, 42)
+#              ]),
+#    Benchmark("./tests/SimpleSubtraction.sol",
+#              [
+#                  # CallData(0x399ae724, [42, 42]),  # init(0, 42)   # remove because of bug in Solidity?
+#                  CallData(0x8fefd8ea, [1015, 42]),  # check(1015, 42)
+#              ]),
+    Benchmark("./tests/DummyAddition.evm",
               [
-                  CallData(0x09921939, [0, 42]),  # transfer1(0, 42)
+                  CallData(None, [42, 42]),
               ]),
-    Benchmark("./tests/SimpleMultiplication.sol",
+    Benchmark("./tests/DummySubtraction.evm",
               [
-                  CallData(0x399ae724, [0, 42]),  # init(0, 42)
-                  CallData(0x8fefd8ea, [1015, 42]),  # check(1015, 42)
+                  CallData(None, [0, 0]),
               ]),
-    Benchmark("./tests/SimpleAddition.sol",
+    Benchmark("./tests/DummyMultiplication.evm",
               [
-                  CallData(0x399ae724, [0, 42]),  # init(0, 42)
-                  CallData(0x8fefd8ea, [1015, 42]),  # check(1015, 42)
+                  CallData(None, [0, 1]),
               ]),
-    Benchmark("./tests/SimpleSubtraction.sol",
+    Benchmark("./tests/DummyDivision.evm",
               [
-                  # CallData(0x399ae724, [42, 42]),  # init(0, 42)   # remove because of bug in Solidity?
-                  CallData(0x8fefd8ea, [1015, 42]),  # check(1015, 42)
+                  CallData(None, [42, 42]),
               ]),
-    Benchmark("./tests/SimpleDivision.evm",
+    Benchmark("./tests/DummyModulo.evm",
               [
-                  CallData(None, [42]),
+                  CallData(None, [42, 42]),
               ]),
 ]
 

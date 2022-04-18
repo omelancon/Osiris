@@ -46,6 +46,7 @@ MUL_WITH_OUTOFBOUND_FLAG = [
                            "ISZERO",  # outofbound prod
 ]
 
+
 DIV_WITH_DIVISION_BY_ZERO_FLAG = [
                                       # stack
                                       # a b
@@ -54,6 +55,16 @@ DIV_WITH_DIVISION_BY_ZERO_FLAG = [
                            "DIV",     # div b
                            "SWAP1",   # b div
                            "ISZERO",  # div-by-zero div
+]
+
+MOD_WITH_DIVISION_BY_ZERO_FLAG = [
+                                      # stack
+                                      # a b
+                           "DUP2",    # b a b
+                           "SWAP1",   # a b b
+                           "MOD",     # mod b
+                           "SWAP1",   # b mod
+                           "ISZERO",  # mod-by-zero mod
 ]
 
 def split_block(block, vertices, edges):
@@ -138,9 +149,15 @@ def repair(arithmetic_errors, vertices, edges):
                                                     + [push_jump_offset_instruction, jumpi_instruction]
                 split_block(block, vertices, edges)
         elif error["type"] == "Division":
-            if instruction == "DIV":
+            if instruction in ("DIV", "SDIV"):
                 block_instructions[index:index + 1] = [basicblock.InstructionWrapper(op, block=block)
                                                        for op in DIV_WITH_DIVISION_BY_ZERO_FLAG] \
+                                                      + [push_jump_offset_instruction, jumpi_instruction]
+                split_block(block, vertices, edges)
+        elif error["type"] == "Modulo":
+            if instruction in ("MOD", "SMOD"):
+                block_instructions[index:index + 1] = [basicblock.InstructionWrapper(op, block=block)
+                                                       for op in MOD_WITH_DIVISION_BY_ZERO_FLAG] \
                                                       + [push_jump_offset_instruction, jumpi_instruction]
                 split_block(block, vertices, edges)
 
