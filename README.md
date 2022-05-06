@@ -93,3 +93,15 @@ python osiris.py -s <contract filename>
 ```
 
 Run ```python osiris.py --help``` for a complete list of options.
+
+### Comparison to sGuard
+
+To execute benchmark comparison to sGuard:
+
+```
+git clone https://github.com/duytai/sGuard
+cd sGuard
+npm install && mkdir contracts
+cd ..
+python benchmarks.py
+```

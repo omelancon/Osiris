@@ -1,9 +1,11 @@
 import logging
+import os
 import re
 import shlex
+import shutil
 import subprocess
 
-debug = False
+debug = True
 
 logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
 
@@ -20,12 +22,13 @@ class CallData:
 
 
 class Benchmark:
-    def __init__(self, file, calls, osiris_path="./osiris/osiris.py"):
+    def __init__(self, file, calls, osiris_path="./osiris/osiris.py", sguard_folder="./sGuard/"):
         self.file = file
         self.calls = calls
         self.osiris_path = osiris_path
+        self.sguard_folder = sguard_folder
 
-    def get_command(self):
+    def get_osiris_command(self):
         # TODO: we assume a Solidity file for now
         inputs = " ".join(calldata.format() for calldata in self.calls)
 
@@ -40,20 +43,78 @@ class Benchmark:
         logging.debug(cmd)
         return cmd
 
+    def execute_sguard(self):
+        init_cwd = os.getcwd()
+        sguard_read_target = os.path.abspath(os.path.join(self.sguard_folder, "contracts", "sample.sol"))
+        sguard_write_target = os.path.abspath(os.path.join(self.sguard_folder, "contracts", "fixed.sol"))
+
+        logging.debug(sguard_read_target)
+        logging.debug(sguard_write_target)
+
+        shutil.copyfile(self.file, sguard_read_target)
+
+        # cleanup sGuard directory
+        try:
+            os.remove(sguard_write_target)
+        except FileNotFoundError:
+            pass
+
+        # Run sguard
+        os.chdir(self.sguard_folder)
+        logging.debug(os.getcwd())
+        process = subprocess.Popen(shlex.split("npm run dev"),
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT)
+        logging.debug(process.communicate())
+
+        os.chdir(init_cwd)
+        logging.debug(os.getcwd())
+
+        # Recompile sguard output
+        process = subprocess.Popen(shlex.split(f"solc --bin-runtime {sguard_write_target}"),
+                                   stdout=subprocess.PIPE)
+        full_output = process.communicate()
+        logging.debug(full_output)
+        output = full_output[0].decode()
+
+        bytecode = re.search(r"Binary of the runtime part:\s+([a-fA-F0-9]+)", output).group(1)
+
+        logging.debug(bytecode)
+
+        outputs = []
+
+        # Run compiled code
+        for calldata in self.calls:
+            process = subprocess.Popen(shlex.split(f"evm --statdump --code {bytecode} --input {calldata.format()} run"),
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT)
+            outputs.append(process.communicate()[0].decode())
+
+        logging.debug(outputs)
+
+        return outputs
+
+
     def execute(self):
-        command = self.get_command()
-        process = subprocess.Popen(shlex.split(command),
+        # Execute Osiris tool
+        osiris_command = self.get_osiris_command()
+        process = subprocess.Popen(shlex.split(osiris_command),
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT)
         output = process.communicate()[0].decode()
 
+        logging.debug("=== Osiris ===")
         logging.debug(output)
 
-        return self.parse_results(command, output)
+        # Execute sGuard
+        sguard_outputs = self.execute_sguard()
 
-    def parse_results(self, command, output):
+        return self.parse_results(output, sguard_outputs)
+
+    def parse_results(self, output, sguard_outputs):
 
         results = []
+        i = 0
 
         while True:
             match = re.search("Benchmark for input ([a-fA-F\d]+\.+)", output)
@@ -63,14 +124,18 @@ class Benchmark:
 
             contract_input = match.group(1)
             output = output[match.end():]
+            sguard_output = sguard_outputs[i]
 
             data = {
                 "function_hash": "0x" + contract_input,
                 "original_gas_cost": int(re.search(r"Original call gas cost: (\d+)", output).group(1)),
                 "repaired_gas_cost": int(re.search(r"Repaired call gas cost: (\d+)", output).group(1)),
+                "sguard_gas_cost": int(re.search(r"gas used:\s+(\d+)", sguard_output).group(1)),
             }
 
             results.append(data)
+
+            i += 1
 
         return results
 
@@ -79,15 +144,25 @@ class Benchmark:
         for result in results:
             original_cost = result['original_gas_cost']
             repaired_cost = result['repaired_gas_cost']
+            sguard_cost = result['sguard_gas_cost']
             diff = repaired_cost - original_cost
             increase = diff / original_cost * 100
+
+            sguard_diff = -(repaired_cost - sguard_cost)
+            sguard_deacrease = sguard_diff / sguard_cost * 100
             print(f"\t- {result['function_hash']}")
             print(f"\t  └> original gas cost:      {original_cost}")
             print(f"\t  └> repaired gas cost:      {repaired_cost}")
             print(f"\t  └> increased gas cost by:  {diff} ({increase:.1f}%)")
+            print(f"\t  └> sGuard gas cost:        {sguard_cost}")
+            print(f"\t  └> decreased gas cost by:   {sguard_diff} ({sguard_deacrease:.1f}%)")
 
 
 benchmarks = [
+    Benchmark("./tests/sample.sol",
+              [
+                  CallData(0xab3ae255, [42]),  # transfer1(0, 42)
+              ]),
 #    Benchmark("./tests/AdditionSubtraction.sol",
 #              [
 #                  CallData(0x09921939, [0, 42]),  # transfer1(0, 42)
@@ -107,26 +182,26 @@ benchmarks = [
 #                  # CallData(0x399ae724, [42, 42]),  # init(0, 42)   # remove because of bug in Solidity?
 #                  CallData(0x8fefd8ea, [1015, 42]),  # check(1015, 42)
 #              ]),
-    Benchmark("./tests/DummyAddition.evm",
-              [
-                  CallData(None, [42, 42]),
-              ]),
-    Benchmark("./tests/DummySubtraction.evm",
-              [
-                  CallData(None, [0, 0]),
-              ]),
-    Benchmark("./tests/DummyMultiplication.evm",
-              [
-                  CallData(None, [0, 1]),
-              ]),
-    Benchmark("./tests/DummyDivision.evm",
-              [
-                  CallData(None, [42, 42]),
-              ]),
-    Benchmark("./tests/DummyModulo.evm",
-              [
-                  CallData(None, [42, 42]),
-              ]),
+#    Benchmark("./tests/DummyAddition.evm",
+#              [
+#                  CallData(None, [42, 42]),
+#              ]),
+#    Benchmark("./tests/DummySubtraction.evm",
+#              [
+#                  CallData(None, [0, 0]),
+#              ]),
+#    Benchmark("./tests/DummyMultiplication.evm",
+#              [
+#                  CallData(None, [0, 1]),
+#              ]),
+#    Benchmark("./tests/DummyDivision.evm",
+#              [
+#                  CallData(None, [42, 42]),
+#              ]),
+#    Benchmark("./tests/DummyModulo.evm",
+#              [
+#                  CallData(None, [42, 42]),
+#              ]),
 ]
 
 if __name__ == "__main__":
