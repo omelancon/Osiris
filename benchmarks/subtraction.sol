@@ -4,6 +4,9 @@ contract Fund {
   uint dontFixMe = 0;
 
   function main(uint x) public {
-    msg.sender.transfer(x - 1);
+        uint value = x - 1;
+    if (value < 10000) {
+        msg.sender.transfer(value);
+    }
   }
 }

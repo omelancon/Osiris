@@ -12,6 +12,7 @@ import global_params
 import z3
 import z3.z3util
 
+import global_params
 from source_map import SourceMap
 from utils import run_command
 from html.parser import HTMLParser
@@ -80,7 +81,7 @@ def compileContracts(contract):
     '''
     Calls solc --bin-runtime to compile contract and returns binary representation of contract.
     '''
-    cmd = "solc --bin-runtime %s" % contract
+    cmd = f"solc {'--optimize' if global_params.SOLIDITY_OPTIMIZE else ''} --bin-runtime %s" % contract
     out = run_command(cmd)
 
     libs = re.findall(r"_+(.*?)_+", out)
@@ -211,6 +212,8 @@ def main():
         "-rp", "--repair", help="Repairs bugs detected and store as .evm.repaired file.", action="store_true")
     parser.add_argument("-rinp", "--repair-input", help="Input for testing gas consumption of repaired contract",
                         action="store", type=str, default=(), nargs='+')
+    parser.add_argument('--solidity-optimize', help="pass the --optimize flag to solidity when analyzing a Solidity contract",
+                        action="store_true")
 
     args = parser.parse_args()
 
@@ -222,6 +225,8 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
+
+    # TODO: use True and False instead of 0/1? Eventually when I have time, check that this will work with Osiris
     global_params.PRINT_PATHS = 1 if args.paths else 0
     global_params.REPORT_MODE = 1 if args.report else 0
     global_params.IGNORE_EXCEPTIONS = 1 if args.error else 0
@@ -236,6 +241,7 @@ def main():
     global_params.MODEL_INPUT = 1 if args.model else 0
     global_params.REPAIR = 1 if args.repair else 0
     global_params.REPAIR_INPUT = tuple(args.repair_input)
+    global_params.SOLIDITY_OPTIMIZE = 1 if args.solidity_optimize else 0
 
     if args.depth_limit:
         global_params.DEPTH_LIMIT = args.depth_limit
@@ -305,7 +311,7 @@ def main():
             with open(processed_evm_file, 'w') as of:
                 of.write(removeSwarmHash(bin_str))
 
-            analyze(processed_evm_file, disasm_file, SourceMap(cname, args.source))
+            analyze(processed_evm_file, disasm_file, SourceMap(cname, args.source) if not global_params.SOLIDITY_OPTIMIZE else None)
 
             remove_temporary_file(processed_evm_file)
             remove_temporary_file(disasm_file)

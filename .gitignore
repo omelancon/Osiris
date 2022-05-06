@@ -1,5 +1,7 @@
 # output files
 tests/*.repaired
+benchmarks/*.repaired
+benchmarks/*.fixed
 
 # pycharm
 .idea

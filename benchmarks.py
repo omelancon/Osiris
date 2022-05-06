@@ -5,7 +5,7 @@ import shlex
 import shutil
 import subprocess
 
-debug = False
+debug = True
 
 logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
 
@@ -28,7 +28,7 @@ class Benchmark:
         self.osiris_path = osiris_path
         self.sguard_folder = sguard_folder
 
-    def get_osiris_command(self):
+    def get_osiris_command(self, optimize=False):
         # TODO: we assume a Solidity file for now
         inputs = " ".join(calldata.format() for calldata in self.calls)
 
@@ -39,11 +39,11 @@ class Benchmark:
 
         evm_flag = "--bytecode" if is_evm else ""
 
-        cmd = f"python {self.osiris_path} -s {self.file} {evm_flag} --repair --repair-input {inputs}"
+        cmd = f"python {self.osiris_path} -s {self.file} {evm_flag} {'--solidity-optimize' if optimize else ''} --repair --repair-input {inputs}"
         logging.debug(cmd)
         return cmd
 
-    def execute_sguard(self):
+    def execute_sguard(self, optimize=False):
         init_cwd = os.getcwd()
         sguard_read_target = os.path.abspath(os.path.join(self.sguard_folder, "contracts", "sample.sol"))
         sguard_write_target = os.path.abspath(os.path.join(self.sguard_folder, "contracts", "fixed.sol"))
@@ -73,7 +73,7 @@ class Benchmark:
         shutil.copyfile(sguard_write_target, self.file + ".sguard.fixed")
 
         # Recompile sguard output
-        process = subprocess.Popen(shlex.split(f"solc --bin-runtime {sguard_write_target}"),
+        process = subprocess.Popen(shlex.split(f"solc {'--optimize' if optimize else ''} --bin-runtime {sguard_write_target}"),
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT)
         full_output = process.communicate()
@@ -97,10 +97,15 @@ class Benchmark:
 
         return outputs
 
+    def execute_benchmarks(self):
+        results = self.execute()
+        optimized_results = [{k + "_optimized": v for k, v in res.items()} for res in self.execute(optimize=True)]
 
-    def execute(self):
+        return [{**result, **optimized_result} for result, optimized_result in zip(results, optimized_results)]
+
+    def execute(self, optimize=False):
         # Execute Osiris tool
-        osiris_command = self.get_osiris_command()
+        osiris_command = self.get_osiris_command(optimize)
         process = subprocess.Popen(shlex.split(osiris_command),
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT)
@@ -110,7 +115,7 @@ class Benchmark:
         logging.debug(output)
 
         # Execute sGuard
-        sguard_outputs = self.execute_sguard()
+        sguard_outputs = self.execute_sguard(optimize)
 
         return self.parse_results(output, sguard_outputs)
 
@@ -143,22 +148,28 @@ class Benchmark:
         return results
 
     def pprint_results(self, results):
-        print(self.file)
-        for result in results:
-            original_cost = result['original_gas_cost']
-            repaired_cost = result['repaired_gas_cost']
-            sguard_cost = result['sguard_gas_cost']
+        def pprint_batch(result, original_key, repaired_key, sguard_key):
+            original_cost = result[original_key]
+            repaired_cost = result[repaired_key]
+            sguard_cost = result[sguard_key]
             diff = repaired_cost - original_cost
             increase = diff / original_cost * 100
 
             sguard_diff = -(repaired_cost - sguard_cost)
             sguard_deacrease = sguard_diff / sguard_cost * 100
+            print(f"\t  └> original gas cost:            {original_cost}")
+            print(f"\t  └> Osiris repaired gas cost:     {repaired_cost}")
+            print(f"\t  └> sGuard repaired gas cost:     {sguard_cost}")
+            print(f"\t  └> increase vs. original cost:   {diff} ({increase:.1f}%)")
+            print(f"\t  └> decrease vs sGuard cost:      {sguard_diff} ({sguard_deacrease:.1f}%)")
+
+        print(self.file)
+        for result in results:
             print(f"\t- {result['function_hash']}")
-            print(f"\t  └> original gas cost:      {original_cost}")
-            print(f"\t  └> repaired gas cost:      {repaired_cost}")
-            print(f"\t  └> increased gas cost by:  {diff} ({increase:.1f}%)")
-            print(f"\t  └> sGuard gas cost:        {sguard_cost}")
-            print(f"\t  └> decreased gas cost by:   {sguard_diff} ({sguard_deacrease:.1f}%)")
+            pprint_batch(result, 'original_gas_cost', 'repaired_gas_cost', 'sguard_gas_cost')
+            print(f"\t  |")
+            print(f"\t  └> With solc --optimize:")
+            pprint_batch(result, 'original_gas_cost_optimized', 'repaired_gas_cost_optimized', 'sguard_gas_cost_optimized')
 
 
 benchmarks = [
@@ -217,5 +228,5 @@ benchmarks = [
 
 if __name__ == "__main__":
     for benchmark in benchmarks:
-        results = benchmark.execute()
+        results = benchmark.execute_benchmarks()
         benchmark.pprint_results(results)

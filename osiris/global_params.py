@@ -77,3 +77,5 @@ REPAIR = 0
 
 # INPUT TO estimate gas price of repaired code
 REPAIR_INPUT = ()
+
+SOLIDITY_OPTIMIZE = 0
