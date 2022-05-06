@@ -5,7 +5,7 @@ import shlex
 import shutil
 import subprocess
 
-debug = True
+debug = False
 
 logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
 
@@ -153,15 +153,14 @@ class Benchmark:
             repaired_cost = result[repaired_key]
             sguard_cost = result[sguard_key]
             diff = repaired_cost - original_cost
-            increase = diff / original_cost * 100
 
             sguard_diff = -(repaired_cost - sguard_cost)
-            sguard_deacrease = sguard_diff / sguard_cost * 100
+            sguard_decrease = sguard_diff / diff
             print(f"\t  └> original gas cost:            {original_cost}")
             print(f"\t  └> Osiris repaired gas cost:     {repaired_cost}")
             print(f"\t  └> sGuard repaired gas cost:     {sguard_cost}")
-            print(f"\t  └> increase vs. original cost:   {diff} ({increase:.1f}%)")
-            print(f"\t  └> decrease vs sGuard cost:      {sguard_diff} ({sguard_deacrease:.1f}%)")
+            print(f"\t  └> increase vs. original cost:   {diff}")
+            print(f"\t  └> decrease vs sGuard cost:      {sguard_diff} ({sguard_decrease:.1f}x)")
 
         print(self.file)
         for result in results:
