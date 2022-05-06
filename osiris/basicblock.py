@@ -170,14 +170,8 @@ class BasicBlock:
     def instruction_index(self, instruction):
         block_instructions = self.get_instructions()
         for i, block_inst in enumerate(block_instructions):
-            if instruction is block_inst:
+            if instruction.newest is block_inst.newest:
                 return i
-            else:
-                while block_inst is not None:
-                    if block_inst.old is instruction:
-                        return i
-                    else:
-                        block_inst = block_inst.old
         else:
             raise ValueError(f"instruction '{instruction}' not in block")
 

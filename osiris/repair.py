@@ -107,7 +107,13 @@ def split_block(block, vertices, edges):
 
     basicblock.fix_jumps(vertices, edges)
 
-def repair(arithmetic_errors, vertices, edges):
+def repair(raw_arithmetic_errors, vertices, edges):
+    # remove potential duplicates. TODO: find why Osiris generates duplicates!
+    arithmetic_errors = []
+    for err in raw_arithmetic_errors:
+        if err not in arithmetic_errors:
+            arithmetic_errors.append(err)
+
     max_block_start = max(vertices)
     revert_block_index = max_block_start + len(vertices[max_block_start])
     revert_block = basicblock.BasicBlock.from_instructions(revert_block_index, "terminal", REVERT_INSTRUCTIONS)

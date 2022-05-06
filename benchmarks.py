@@ -5,7 +5,7 @@ import shlex
 import shutil
 import subprocess
 
-debug = True
+debug = False
 
 logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
 
@@ -70,9 +70,12 @@ class Benchmark:
         os.chdir(init_cwd)
         logging.debug(os.getcwd())
 
+        shutil.copyfile(sguard_write_target, self.file + ".sguard.fixed")
+
         # Recompile sguard output
         process = subprocess.Popen(shlex.split(f"solc --bin-runtime {sguard_write_target}"),
-                                   stdout=subprocess.PIPE)
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT)
         full_output = process.communicate()
         logging.debug(full_output)
         output = full_output[0].decode()
@@ -159,7 +162,15 @@ class Benchmark:
 
 
 benchmarks = [
-    Benchmark("./tests/sample.sol",
+    Benchmark("./benchmarks/addition.sol",
+              [
+                  CallData(0xab3ae255, [42]),  # transfer1(0, 42)
+              ]),
+    Benchmark("./benchmarks/multiplication.sol",
+              [
+                  CallData(0xab3ae255, [42]),  # transfer1(0, 42)
+              ]),
+    Benchmark("./benchmarks/subtraction.sol",
               [
                   CallData(0xab3ae255, [42]),  # transfer1(0, 42)
               ]),
